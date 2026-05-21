@@ -2,6 +2,7 @@
 kakatua Bikes WebSite
 
 antes, baixe as extenções
+
 pip install django
 
 pip install djangorestframework
