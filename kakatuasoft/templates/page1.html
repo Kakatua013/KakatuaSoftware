@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kakatua Bikes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>  
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #ABDD9C 0%, #8bc47a 100%);
+        }
+
+        h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #2c5e1a 0%, #1e4010 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+        }
+
+        h2 {
+            font-size: 20px;
+            font-weight: 400;
+            margin-bottom: 20px;
+            color: rgba(255, 255, 255, 0.95);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        hr {
+            width: 80px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.4);
+            border: none;
+            margin: 0 auto 30px auto;
+            border-radius: 2px;
+        }
+
+        .login-form {
+            max-width: 400px;
+            width: 100%;
+            padding: 40px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .login-form:hover {
+            transform: translateY(-5px);
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c5e1a;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #ABDD9C;
+            box-shadow: 0 0 0 3px rgba(171, 221, 156, 0.2);
+        }
+        
+        .form-group input::placeholder {
+            color: #aaa;
+        }
+        
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #ABDD9C 0%, #8bc47a 100%);
+            color: #2c5e1a;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            margin-top: 10px;
+        }
+        
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(135deg, #9bcd8a 0%, #7cb56a 100%);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 24px 0 16px;
+        }
+
+        .divider hr {
+            flex: 1;
+            width: auto;
+            height: 1px;
+            background: #e1e5e9;
+            margin: 0;
+            border-radius: 0;
+        }
+
+        .divider span {
+            font-size: 13px;
+            color: #aaa;
+            white-space: nowrap;
+        }
+
+        .btn-register {
+            width: 100%;
+            padding: 12px;
+            background: white;
+            color: #2c5e1a;
+            border: 2px solid #ABDD9C;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            text-align: center;
+            display: block;
+            text-decoration: none;
+        }
+        
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+            background: #f4fdf0;
+        }
+
+        .error-message {
+            color: #dc2626;
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 12px;
+            background-color: #fee2e2;
+            border-radius: 12px;
+            max-width: 400px;
+            width: 100%;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <h1>Kakatua Bikes WEB</h1>
+    <h2>Seja bem vindo ao Portal Kakatua Bikes!</h2>
+    <hr>
+
+    {% if erro %}
+        <div class="error-message">
+            {{ erro }}
+        </div>
+    {% endif %}
+    
+
+    <form method="POST" action="{% url 'page1' %}" class="login-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="login">Login</label>
+            <input type="text" name="Login" id="login" placeholder="Digite seu usuário" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="senha">Senha</label>
+            <input type="password" name="Senha" id="senha" placeholder="Digite sua senha" required>
+        </div>
+        
+        <button type="submit" class="btn-submit">Entrar no sistema</button>
+
+        <div class="divider">
+            <hr>
+            <span>Novo por aqui?</span>
+            <hr>
+        </div>
+
+        <a href="{% url 'cadastro' %}" class="btn-register">Criar conta</a>
+    </form>
+    {% for message in messages %}
+    <div class="success-message">{{ message }}</div>
+    {% endfor %}
+</body>
+</html>

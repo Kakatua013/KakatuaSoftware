@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Kakatua Bikes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #ABDD9C 0%, #8bc47a 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column; /* Alinha itens de cima para baixo */
+            align-items: center;
+        }
+
+        /* --- BARRA SUPERIOR (NAVBAR) --- */
+        .navbar {
+            width: 100%;
+            background: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between; /* Nome na esquerda, Botão na direita */
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            position: fixed; /* Fixa no topo */
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .user-welcome {
+            color: #2c5e1a;
+            font-weight: 500;
+        }
+
+        .user-welcome strong {
+            color: #1e3f11;
+            text-transform: capitalize;
+        }
+
+        /* --- CONTAINER CENTRAL --- */
+        .main-content {
+            margin-top: 100px; /* Espaço para não ficar debaixo da navbar */
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 800px;
+            width: 90%;
+        }
+
+        h1 {
+            color: #2c5e1a;
+            margin-bottom: 20px;
+        }
+
+        .btn-sair {
+            background: #CD5C5C;
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .btn-sair:hover {
+            background: #b04a4a;
+            transform: scale(1.05);
+        }
+
+        .btn-acao {
+            background: #2c5e1a;
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .btn-acao:hover {
+            background: #1e3f11;
+            transform: scale(1.05);
+        }
+
+        .placeholder-area {
+            border: 2px dashed #ccc;
+            padding: 50px;
+            color: #999;
+            margin-top: 20px;
+            border-radius: 10px;
+        }
+        body {
+            padding-top: 100px; 
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="user-welcome">
+            Olá, <strong>{{ usuario.Login }}</strong>
+            <h1>Kakatua Bikes WEB</h1>
+        </div>
+        
+        <form action="{% url 'logout' %}" method="post" style="margin: 0;">
+            {% csrf_token %}
+            <button type="submit" class="btn-sair">sair</button>
+        </form>
+    </nav>
+
+    <main class="main-content">
+        
+        <div class="container">
+            <h1>Estação 1</h1>
+        
+            <div class="user-info">
+                {% if status_estacao == 0 %}
+                    <h2 style="color: #2c5e1a;"> Você pode armazenar sua bike </h2>
+                    {% csrf_token %}
+                    <button type="submit" class="btn-acao">Armazenar Estacao</button>
+                    </button>
+                {% else %}
+                    <h2 style="color: #CD5C5C;"> Estação Bloqueada</h2>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
