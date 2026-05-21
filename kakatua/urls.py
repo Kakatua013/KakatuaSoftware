@@ -21,6 +21,7 @@ from kakatuasoft import views
 urlpatterns = [
     # 'name=' é para nomear a pagina que sera chamada e os valores delas estão escritos no final de settings.py
     path('admin/', admin.site.urls),
+    path("api-auth/", include("rest_framework.urls")),
     path('page1/', views.fazer_login, name='page1'),
     path('page2/', views.page2, name='page2'),
     path('cadastro/', views.cadastro, name='cadastro'),
