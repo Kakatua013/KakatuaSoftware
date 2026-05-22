@@ -28,9 +28,9 @@ class Usuario(models.Model):
         # Retorna True se coincidirem, False se forem diferentes
         return check_password(senha_raw, self.Senha)
 
-
     # Quando você der print em um objeto Usuario, ou vê-lo no admin Django
     # Ele retornará o valor do campo Login em vez de "Objeto Usuario (123)"
+
     def __str__(self):
         return self.Login
 
@@ -45,5 +45,4 @@ class Usuario(models.Model):
 
 class estacao:
     def verifica_station(self):
-        return 0
-
+        return 1
