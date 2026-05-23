@@ -9,6 +9,10 @@ class Usuario(models.Model):
     Login = models.CharField(max_length=50, unique=True)
     Senha = models.CharField(max_length=128)
 
+    id_tranca = models.IntegerField(default=0)
+    estado_tranca = models.IntegerField(default=0)
+    tranca_reservada = models.IntegerField(default=0)
+
     # Método para definir/alterar a senha do usuário de forma segura
     # Recebe a senha em texto puro (senha_raw) como parâmetro
     def set_senha(self, senha_raw):
@@ -43,6 +47,7 @@ class Usuario(models.Model):
 #      >>> usuario.set_senha('teste_123')
 #      >>> usuario.save()
 
-class estacao:
+class estacao(models.Model):
+
     def verifica_station(self):
         return 1
