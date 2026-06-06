@@ -1,14 +1,25 @@
 # KakatuaSoftware
-kakatua Bikes WebSite
 
-antes, baixe as extenções
+Site e API do sistema de bicicletário Kakatua Bikes, desenvolvido com Django.
 
-python -m pip install requirements.txt
+## Tecnologias
 
-pip install django
+- Python / Django
+- Django REST Framework
+- MySQL
+- Nginx (proxy reverso)
+- HTML / CSS
 
-pip install djangorestframework
+## Como rodar
 
-pip install markdown       # Markdown support for the browsable API.
+```bash
+pip install -r requirements.txt
+python manage.py runserver
+```
 
-pip install django-filter  # Filtering support
+## Endpoints
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| POST | `/api/sensor/estacao/` | Atualiza o status da estação |
+| POST | `/api/sensor/acesso/` | Atualiza o estado de uma tranca |
