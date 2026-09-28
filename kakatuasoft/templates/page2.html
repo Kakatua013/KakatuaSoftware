@@ -46,16 +46,23 @@
         }
 
         /* --- CONTAINER CENTRAL --- */
-        .main-content {
-            margin-top: 100px; /* Espaço para não ficar debaixo da navbar */
+       .main-content {
+            margin-top: 100px;
+            width: 90%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;              /* espaço entre os cards */
+         }
+
+    /* Um card por estação (o estilo que antes era do .main-content) */
+        .card-estacao {
             background: white;
             padding: 40px;
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             text-align: center;
-            max-width: 800px;
-            width: 90%;
-        }
+        } 
 
         h1 {
             color: #2c5e1a;
@@ -122,23 +129,51 @@
         </form>
     </nav>
 
-    <main class="main-content">
-        
-        <div class="container">
-            <h1>Estação 1</h1>
-        
+<main class="main-content">
+
+    {% if messages %}
+        {% for message in messages %}
+            <p style="background: white; padding: 12px 20px; border-radius: 10px; text-align: center;">
+                {{ message }}
+            </p>
+        {% endfor %}
+    {% endif %}
+
+    {% for estacao in estacoes %}
+        <div class="card-estacao">
+            <h1>{{ estacao.nome }}</h1>
+
             <div class="user-info">
-                {% if status_estacao == 0 %}
-                    <h2 style="color: #2c5e1a;"> Você pode armazenar sua bike </h2>
-                    {% csrf_token %}
-                    <button type="submit" class="btn-acao">Armazenar Estacao</button>
-                    </button>
+                {% if estacao.livre %}
+                    <h2 style="color: #2c5e1a;">Você pode armazenar sua bike</h2>
+                    <form method="post" action="{% url 'ocupar_estacao' estacao.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-acao">Armazenar Estação</button>
+                    </form>
+
+                {% elif estacao.ocupada_por == usuario %}
+                    <h2 style="color: #2c5e1a;">Sua bike está armazenada nesta estação</h2>
+                    <p style="color: #555; margin: 10px 0 20px;">
+                        Ocupada desde {{ estacao.ocupada_em|date:"d/m/Y H:i" }}
+                    </p>
+                    <form method="post" action="{% url 'liberar_estacao' estacao.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-sair">Liberar Estação</button>
+                    </form>
+
                 {% else %}
-                    <h2 style="color: #CD5C5C;"> Estação Bloqueada</h2>
+                    <h2 style="color: #CD5C5C;">Estação Bloqueada</h2>
+                    <p style="color: #555;">Esta estação está sendo usada por outro usuário.</p>
                 {% endif %}
             </div>
         </div>
-    </main>
+    {% empty %}
+        <div class="card-estacao">
+            <p>Nenhuma estação cadastrada.</p>
+        </div>
+    {% endfor %}
+
+</main>
 
 </body>
 </html>

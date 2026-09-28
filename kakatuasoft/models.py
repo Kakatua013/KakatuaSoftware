@@ -47,7 +47,20 @@ class Usuario(models.Model):
 #      >>> usuario.set_senha('teste_123')
 #      >>> usuario.save()
 
-class estacao(models.Model):
+class Estacao(models.Model):
+    nome = models.CharField(max_length=50)
+    # None = livre | preenchido = ocupada por esse usuário
+    ocupada_por = models.ForeignKey(
+        Usuario,
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name="estacoes_ocupadas",
+    )
+    ocupada_em = models.DateTimeField(null=True, blank=True)
 
-    def verifica_station(self):
-        return 1
+    @property
+    def livre(self):
+        return self.ocupada_por_id is None
+
+    def __str__(self):
+        return self.nome
