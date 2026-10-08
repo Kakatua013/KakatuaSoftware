@@ -1,11 +1,12 @@
 import requests
 
-SERVIDOR_URL = "https://esp32.chobby-chobby.com.br/api/sensor/"
+SERVIDOR_URL = "https://esp32.chobi.com.br/api/sensor/"
 API_KEY = "ifpDXyrQY13sJJj8T98dr3FoLvjbtxfpsBAEOJcp1p0="
 HEADERS = {
     "X-API-Key": API_KEY,
     "Content-Type": "application/json",
 }
+
 
 def enviar_acesso(usuario):
     try:
@@ -26,6 +27,7 @@ def enviar_acesso(usuario):
     except Exception as e:
         print(f"Erro ao enviar acesso: {e}")
         return False
+
 
 def consultar_estacao():
     try:
