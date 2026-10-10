@@ -1,234 +1,469 @@
-
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Kakatua Bikes</title>
+    <title>Estações - Kakatua Bikes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --verde-900: #0b3d24;
+            --verde-800: #0f4f2e;
+            --verde-700: #14683a;
+            --verde-600: #1b7f47;
+            --verde-100: #e4f1e8;
+            --verde-50:  #f2f7f3;
+            --texto:      #1c2b22;
+            --texto-suave:#55665c;
+            --borda:      #cfdbd3;
+            --erro:       #a8201a;
+            --erro-escuro:#85160f;
+            --erro-fundo: #fcebea;
+            --alerta:     #7a4d00;
+            --alerta-fundo:#fff4db;
+            --alerta-borda:#d9a21b;
+            --fonte-titulo: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+            --fonte-texto:  'Source Sans 3', 'Segoe UI', system-ui, -apple-system, sans-serif;
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        [hidden] { display: none !important; }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #ABDD9C 0%, #8bc47a 100%);
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 100px;
+            font-family: var(--fonte-texto);
+            font-size: 16px;
+            line-height: 1.5;
+            color: var(--texto);
+            background: var(--verde-50);
         }
 
-        /* --- BARRA SUPERIOR (NAVBAR) --- */
+        /* ---------- Barra superior ---------- */
         .navbar {
-            width: 100%;
-            background: white;
-            padding: 15px 30px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1000;
+            gap: 16px;
+            padding: 14px 32px;
+            background: var(--verde-900);
+            color: #fff;
         }
 
-        .user-welcome {
-            color: #2c5e1a;
+        .marca {
+            font-family: var(--fonte-titulo);
+            font-size: 22px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .marca span {
+            display: block;
+            font-family: var(--fonte-texto);
+            font-size: 13px;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.72);
+        }
+
+        .navbar-usuario {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .usuario {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+        }
+
+        .avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: #fff;
+            color: var(--verde-800);
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .usuario strong { font-weight: 600; }
+
+        .btn-sair {
+            height: 38px;
+            padding: 0 16px;
+            background: transparent;
+            color: #fff;
+            border: 1.5px solid rgba(255, 255, 255, 0.6);
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 600;
+            transition: background 0.15s, border-color 0.15s;
+        }
+
+        .btn-sair:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: #fff;
+        }
+
+        /* ---------- Conteúdo ---------- */
+        .main-content {
+            width: 100%;
+            max-width: 1040px;
+            margin: 0 auto;
+            padding: 36px 24px 56px;
+        }
+
+        .cabecalho {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 12px 24px;
+            margin-bottom: 24px;
+        }
+
+        .cabecalho h1 {
+            font-family: var(--fonte-titulo);
+            font-size: 32px;
+            line-height: 1.2;
+            color: var(--verde-900);
+        }
+
+        .cabecalho p {
+            color: var(--texto-suave);
+            margin-top: 4px;
+        }
+
+        /* Aviso exibido só quando o servidor está indisponível (controlado pelo script) */
+        .banner {
+            padding: 12px 14px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            border-left: 4px solid var(--alerta-borda);
+            background: var(--alerta-fundo);
+            color: var(--alerta);
             font-weight: 500;
         }
 
-        .user-welcome strong {
-            color: #1e3f11;
-            text-transform: capitalize;
+        .alerta-msg {
+            padding: 12px 14px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            border-left: 4px solid var(--verde-600);
+            background: var(--verde-100);
+            color: var(--verde-800);
+            font-weight: 500;
         }
 
-        .user-welcome h1 {
-            margin-bottom: 0;
-            font-size: 22px;
+        /* ---------- Cards de estação ---------- */
+        .grade {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
         }
 
-        /* --- CONTAINER CENTRAL --- */
-
-        .main-content {
-            margin-top: 50px;
-            margin-bottom: 40px;
-
-       .main-content {
-            margin-top: 50px;
-            width: 90%;
-            max-width: 800px;
+        .card-estacao {
             display: flex;
             flex-direction: column;
-            gap: 30px;
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-top: 4px solid var(--verde-600);
+            border-radius: 6px;
+            padding: 24px;
         }
 
-            gap: 30px;              /* espaço entre os cards */
-         }
+        .card-estacao[data-situacao="sua"]     { border-top-color: var(--verde-900); }
+        .card-estacao[data-situacao="ocupada"] { border-top-color: var(--erro); }
 
-        /* Um card por estação */
-        .card-estacao {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            text-align: center;
+        .card-topo {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 16px;
         }
 
-        h1 {
-            color: #2c5e1a;
-            margin-bottom: 20px;
+        .card-estacao h2 {
+            font-family: var(--fonte-titulo);
+            font-size: 22px;
+            line-height: 1.25;
+            color: var(--verde-900);
         }
 
-        /* Banner de status do servidor / bloqueio */
-        .banner {
-            background: white;
-            padding: 12px 20px;
-            border-radius: 10px;
-            text-align: center;
+        .selo {
+            flex-shrink: 0;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 13px;
             font-weight: 600;
-            color: #2c5e1a;
+            background: var(--verde-100);
+            color: var(--verde-800);
         }
 
-        /* Estado da tranca dentro do card */
+        .selo-sua { background: var(--verde-900); color: #fff; }
+        .selo-ocupada { background: var(--erro-fundo); color: var(--erro); }
+
+        /* Estado da tranca */
         .tranca-info {
-            color: #555;
-            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            margin-bottom: 18px;
+            border-top: 1px solid var(--borda);
+            border-bottom: 1px solid var(--borda);
+            color: var(--texto-suave);
+            font-size: 15px;
         }
 
         .tranca {
             font-weight: 600;
-            color: #2c5e1a;
+            color: var(--verde-800);
         }
 
-        /* Aviso quando o sensor está detectando algo */
-        .aviso-sensor {
-            color: #CD5C5C;
-            margin-top: 10px;
+        .tranca[data-estado="fechada"] { color: var(--alerta); }
+
+        .card-corpo {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .card-corpo h3 {
+            font-size: 17px;
             font-weight: 600;
+            line-height: 1.3;
+            color: var(--texto);
         }
 
-        .btn-sair {
-            background: #CD5C5C;
-            color: white;
-            border: none;
-            padding: 8px 18px;
-            border-radius: 8px;
+        .card-corpo p { color: var(--texto-suave); font-size: 15px; }
+
+        .card-corpo form { margin-top: auto; padding-top: 6px; }
+
+        .btn-acao,
+        .btn-liberar {
+            width: 100%;
+            height: 44px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
+            font-family: inherit;
+            font-size: 16px;
             font-weight: 600;
-            transition: 0.3s;
-        }
-
-        .btn-sair:hover {
-            background: #b04a4a;
-            transform: scale(1.05);
+            transition: background 0.15s;
         }
 
         .btn-acao {
-            background: #2c5e1a;
-            color: white;
+            background: var(--verde-700);
+            color: #fff;
             border: none;
-            padding: 8px 18px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: 0.3s;
         }
 
-        .btn-acao:hover {
-            background: #1e3f11;
-            transform: scale(1.05);
-        }
+        .btn-acao:hover { background: var(--verde-800); }
 
         .btn-acao:disabled {
-            opacity: 0.5;
+            background: #b9c7be;
+            color: #fff;
             cursor: not-allowed;
-            transform: none;
+        }
+
+        .btn-liberar {
+            background: #fff;
+            color: var(--erro);
+            border: 1.5px solid var(--erro);
+        }
+
+        .btn-liberar:hover { background: var(--erro-fundo); }
+
+        .aviso-sensor {
+            padding: 10px 12px;
+            border-radius: 4px;
+            border-left: 4px solid var(--alerta-borda);
+            background: var(--alerta-fundo);
+            color: var(--alerta);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .vazio {
+            grid-column: 1 / -1;
+            padding: 40px 24px;
+            text-align: center;
+            background: #fff;
+            border: 1px dashed var(--borda);
+            border-radius: 6px;
+            color: var(--texto-suave);
+        }
+
+        .btn-sair:focus-visible,
+        .btn-acao:focus-visible,
+        .btn-liberar:focus-visible {
+            outline: 3px solid rgba(27, 127, 71, 0.5);
+            outline-offset: 2px;
+        }
+
+        /* ---------- Modo foco: o usuário tem uma bike guardada ----------
+           Decidido no servidor (HTML já vem pronto), então vale em qualquer
+           aparelho e após recarregar. Quem não tem bike guardada vê a grade normal. */
+        .txt-foco { display: none; }
+
+        .main-content:has(.card-estacao[data-situacao="sua"]) .txt-normal { display: none; }
+        .main-content:has(.card-estacao[data-situacao="sua"]) .txt-foco   { display: inline; }
+        .main-content:has(.card-estacao[data-situacao="sua"]) .cabecalho p.txt-foco { display: block; }
+
+        .grade:has(.card-estacao[data-situacao="sua"]) {
+            grid-template-columns: minmax(0, 600px);
+            justify-content: center;
+        }
+
+        .grade:has(.card-estacao[data-situacao="sua"]) .card-estacao:not([data-situacao="sua"]) {
+            display: none;
+        }
+
+        .detalhe-foco { display: none; }
+
+        .card-estacao[data-situacao="sua"] { padding: 36px; }
+        .card-estacao[data-situacao="sua"] h2 { font-size: 28px; }
+        .card-estacao[data-situacao="sua"] .tranca-info { padding: 18px 0; font-size: 17px; }
+        .card-estacao[data-situacao="sua"] .tranca { font-size: 20px; }
+        .card-estacao[data-situacao="sua"] .card-corpo { gap: 14px; }
+        .card-estacao[data-situacao="sua"] .card-corpo h3 { font-size: 20px; }
+        .card-estacao[data-situacao="sua"] .card-corpo p { font-size: 16px; }
+        .card-estacao[data-situacao="sua"] .detalhe-foco { display: block; }
+        .card-estacao[data-situacao="sua"] .btn-liberar { height: 48px; }
+
+        /* ---------- Responsivo ---------- */
+        @media (max-width: 600px) {
+            .navbar { padding: 12px 16px; }
+            .usuario span.nome-completo { display: none; }
+            .main-content { padding: 24px 16px 40px; }
+            .cabecalho h1 { font-size: 26px; }
+            .grade,
+            .grade:has(.card-estacao[data-situacao="sua"]) { grid-template-columns: 1fr; }
+            .card-estacao[data-situacao="sua"] { padding: 24px; }
         }
     </style>
 </head>
 <body>
 
     <nav class="navbar">
-        <div class="user-welcome">
-            Olá, <strong>{{ usuario.Login }}</strong>
-            <h1>Kakatua Bikes WEB</h1>
+        <div class="marca">
+            Kakatua Bikes
+            <span>Portal do aluno</span>
         </div>
 
-        <form action="{% url 'logout' %}" method="post" style="margin: 0;">
-            {% csrf_token %}
-            <button type="submit" class="btn-sair">sair</button>
-        </form>
+        <div class="navbar-usuario">
+            <div class="usuario">
+                <div class="avatar" aria-hidden="true">{{ usuario.Login|first|upper }}</div>
+                <span class="nome-completo">Olá, <strong>{{ usuario.Login }}</strong></span>
+            </div>
+
+            <form action="{% url 'logout' %}" method="post" style="margin: 0;">
+                {% csrf_token %}
+                <button type="submit" class="btn-sair">Sair</button>
+            </form>
+        </div>
     </nav>
 
     <main class="main-content">
 
-        <!-- Banner de bloqueio (atualizado pelo script no final da página) -->
-        <p id="banner-bloqueio" class="banner">
-            {% if bloqueada is None %}⚠️ Servidor indisponível{% elif bloqueada %}🔒 Estação bloqueada{% else %}🔓 Estação liberada{% endif %}
+        <div class="cabecalho">
+            <div>
+                <h1>
+                    <span class="txt-normal">Estações</span>
+                    <span class="txt-foco">Sua estação</span>
+                </h1>
+                <p class="txt-normal">Guarde sua bike em uma estação disponível.</p>
+                <p class="txt-foco">Acompanhe sua bike e libere a estação quando for retirá-la.</p>
+            </div>
+        </div>
+
+        <!-- Aparece só quando não há resposta do servidor (atualizado pelo script) -->
+        <p id="banner-bloqueio" class="banner" role="status" {% if bloqueada is not None %}hidden{% endif %}>
+            Servidor indisponível. As informações das estações podem estar desatualizadas.
         </p>
 
         {% if messages %}
             {% for message in messages %}
-                <p style="background: white; padding: 12px 20px; border-radius: 10px; text-align: center;">
-                    {{ message }}
-                </p>
+                <p class="alerta-msg" role="status">{{ message }}</p>
             {% endfor %}
         {% endif %}
 
-        {% for estacao in estacoes %}
-            <div class="card-estacao">
-                <h1>{{ estacao.nome }}</h1>
+        <div class="grade">
+            {% for estacao in estacoes %}
+                {% if estacao.livre %}
+                    <section class="card-estacao" data-situacao="livre">
+                {% elif estacao.ocupada_por == usuario %}
+                    <section class="card-estacao" data-situacao="sua">
+                {% else %}
+                    <section class="card-estacao" data-situacao="ocupada">
+                {% endif %}
 
-                <!-- Estado da tranca desta estação (atualizado pelo script) -->
-                <p class="tranca-info">
-                    Tranca:
-                    <span class="tranca" data-id="{{ estacao.pk }}">
-                        {% if estacao.tranca %}{{ estacao.tranca.estado }}{% if estacao.tranca.reservada %} (reservada){% endif %}{% else %}sem dados{% endif %}
-                    </span>
-                </p>
+                    <div class="card-topo">
+                        <h2>{{ estacao.nome }}</h2>
+                        {% if estacao.livre %}
+                            <span class="selo">Livre</span>
+                        {% elif estacao.ocupada_por == usuario %}
+                            <span class="selo selo-sua">Sua bike</span>
+                        {% else %}
+                            <span class="selo selo-ocupada">Em uso</span>
+                        {% endif %}
+                    </div>
 
-                <div class="user-info">
-                    {% if estacao.livre %}
-                        <h2 style="color: #2c5e1a;">Você pode armazenar sua bike</h2>
-                        <form method="post" action="{% url 'ocupar_estacao' estacao.pk %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn-acao btn-armazenar" data-id="{{ estacao.pk }}"
-                                    {% if estacao.sensor_bloqueia %}disabled{% endif %}>Armazenar Estação</button>
-                        </form>
-                        <p class="aviso-sensor" data-id="{{ estacao.pk }}"
-                           {% if not estacao.sensor_bloqueia %}hidden{% endif %}>
-                            ⚠️ Sensor detectando algo. Aguarde para armazenar.
-                        </p>
+                    <!-- Estado da tranca desta estação (atualizado pelo script) -->
+                    <p class="tranca-info">
+                        Tranca
+                        <span class="tranca" data-id="{{ estacao.pk }}"{% if estacao.tranca %} data-estado="{{ estacao.tranca.estado }}"{% endif %}>
+                            {% if estacao.tranca %}{{ estacao.tranca.estado }}{% if estacao.tranca.reservada %} (reservada){% endif %}{% else %}sem dados{% endif %}
+                        </span>
+                    </p>
 
-                    {% elif estacao.ocupada_por == usuario %}
-                        <h2 style="color: #2c5e1a;">Sua bike está armazenada nesta estação</h2>
-                        <p style="color: #555; margin: 10px 0 20px;">
-                            Ocupada desde {{ estacao.ocupada_em|date:"d/m/Y H:i" }}
-                        </p>
-                        <form method="post" action="{% url 'liberar_estacao' estacao.pk %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn-sair">Liberar Estação</button>
-                        </form>
+                    <div class="card-corpo">
+                        {% if estacao.livre %}
+                            <h3>Estação disponível</h3>
+                            <p>Você pode guardar sua bike aqui.</p>
+                            <p class="aviso-sensor" data-id="{{ estacao.pk }}"
+                               {% if not estacao.sensor_bloqueia %}hidden{% endif %}>
+                                Sensor detectando algo. Aguarde para guardar.
+                            </p>
+                            <form method="post" action="{% url 'ocupar_estacao' estacao.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-acao btn-armazenar" data-id="{{ estacao.pk }}"
+                                        {% if estacao.sensor_bloqueia %}disabled{% endif %}>Guardar bike</button>
+                            </form>
 
-                    {% else %}
-                        <h2 style="color: #CD5C5C;">Estação Bloqueada</h2>
-                        <p style="color: #555;">Esta estação está sendo usada por outro usuário.</p>
-                    {% endif %}
+                        {% elif estacao.ocupada_por == usuario %}
+                            <h3>Sua bike está guardada nesta estação</h3>
+                            <p>Guardada desde {{ estacao.ocupada_em|date:"d/m/Y H:i" }}</p>
+                            <p class="detalhe-foco">Ao liberar, a estação volta a ficar disponível para outros alunos.</p>
+                            <form method="post" action="{% url 'liberar_estacao' estacao.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-liberar">Liberar estação</button>
+                            </form>
+
+                        {% else %}
+                            <h3>Estação em uso</h3>
+                            <p>Esta estação está sendo usada por outro usuário.</p>
+                        {% endif %}
+                    </div>
+                </section>
+            {% empty %}
+                <div class="vazio">
+                    <p>Nenhuma estação cadastrada.</p>
                 </div>
-            </div>
-        {% empty %}
-            <div class="card-estacao">
-                <p>Nenhuma estação cadastrada.</p>
-            </div>
-        {% endfor %}
+            {% endfor %}
+        </div>
 
     </main>
 
@@ -241,15 +476,17 @@
                 if (r.ok) {
                     const d = await r.json();
 
-                    document.getElementById('banner-bloqueio').textContent =
-                        d.bloqueada === null ? '⚠️ Servidor indisponível'
-                        : d.bloqueada ? '🔒 Estação bloqueada' : '🔓 Estação liberada';
+                    document.getElementById('banner-bloqueio').hidden = d.bloqueada !== null;
 
                     document.querySelectorAll('.tranca').forEach(el => {
                         const t = d.trancas[el.dataset.id];
-                        el.textContent = t
-                            ? t.estado + (t.reservada ? ' (reservada)' : '')
-                            : 'sem dados';
+                        if (t) {
+                            el.textContent = t.estado + (t.reservada ? ' (reservada)' : '');
+                            el.dataset.estado = t.estado;
+                        } else {
+                            el.textContent = 'sem dados';
+                            delete el.dataset.estado;
+                        }
                     });
 
                     document.querySelectorAll('.btn-armazenar').forEach(btn => {
@@ -270,4 +507,3 @@
 
 </body>
 </html>
-

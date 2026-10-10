@@ -1,247 +1,307 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kakatua Bikes - Cadastro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <style>  
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+    <title>Criar conta - Kakatua Bikes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --verde-900: #0b3d24;
+            --verde-800: #0f4f2e;
+            --verde-700: #14683a;
+            --verde-600: #1b7f47;
+            --verde-100: #e4f1e8;
+            --verde-50:  #f2f7f3;
+            --texto:      #1c2b22;
+            --texto-suave:#55665c;
+            --borda:      #cfdbd3;
+            --erro:       #a8201a;
+            --erro-fundo: #fcebea;
+            --sucesso-fundo: #e4f1e8;
+            --fonte-titulo: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+            --fonte-texto:  'Source Sans 3', 'Segoe UI', system-ui, -apple-system, sans-serif;
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        [hidden] { display: none !important; }
 
         body {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: minmax(320px, 5fr) 6fr;
+            font-family: var(--fonte-texto);
+            font-size: 16px;
+            line-height: 1.5;
+            color: var(--texto);
+            background: #fff;
+        }
+
+        /* ---------- Painel institucional (esquerda) ---------- */
+        .painel {
+            background: var(--verde-900);
+            color: #fff;
+            padding: 56px 56px 40px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #ABDD9C 0%, #8bc47a 100%);
+            justify-content: space-between;
+            gap: 40px;
         }
 
-        h1 {
-            font-size: 48px;
+        .marca {
+            font-family: var(--fonte-titulo);
+            font-size: 26px;
             font-weight: 700;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #2c5e1a 0%, #1e4010 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: -0.5px;
+            letter-spacing: 0.2px;
         }
 
-        h2 {
-            font-size: 20px;
+        .marca span {
+            display: block;
+            margin-top: 2px;
+            font-family: var(--fonte-texto);
+            font-size: 15px;
             font-weight: 400;
-            margin-bottom: 20px;
-            color: rgba(255, 255, 255, 0.95);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            color: rgba(255, 255, 255, 0.72);
         }
 
-        hr.divider-top {
-            width: 80px;
-            height: 3px;
-            background: rgba(255, 255, 255, 0.4);
-            border: none;
-            margin: 0 auto 30px auto;
-            border-radius: 2px;
+        .painel-texto h2 {
+            font-family: var(--fonte-titulo);
+            font-size: 38px;
+            line-height: 1.15;
+            font-weight: 700;
+            max-width: 15ch;
+            margin-bottom: 16px;
         }
 
-        .cadastro-form {
-            max-width: 400px;
+        .painel-texto p {
+            max-width: 38ch;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 17px;
+        }
+
+        .painel-bike {
             width: 100%;
-            padding: 40px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
+            max-width: 340px;
+            color: rgba(255, 255, 255, 0.28);
         }
 
-        .cadastro-form:hover {
-            transform: translateY(-5px);
+        /* ---------- Área do formulário (direita) ---------- */
+        .conteudo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+            background: var(--verde-50);
         }
-        
-        .form-group {
+
+        .cartao {
+            width: 100%;
+            max-width: 420px;
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-top: 4px solid var(--verde-700);
+            border-radius: 6px;
+            padding: 36px 36px 32px;
+        }
+
+        .cartao h1 {
+            font-family: var(--fonte-titulo);
+            font-size: 28px;
+            line-height: 1.2;
+            color: var(--verde-900);
+            margin-bottom: 6px;
+        }
+
+        .cartao .subtitulo {
+            color: var(--texto-suave);
+            margin-bottom: 24px;
+        }
+
+        .alerta {
+            padding: 12px 14px;
+            border-radius: 4px;
             margin-bottom: 20px;
+            font-size: 15px;
+            font-weight: 500;
+            border-left: 4px solid;
         }
-        
+
+        .alerta-erro {
+            background: var(--erro-fundo);
+            color: var(--erro);
+            border-color: var(--erro);
+        }
+
+        .alerta-sucesso {
+            background: var(--sucesso-fundo);
+            color: var(--verde-800);
+            border-color: var(--verde-600);
+        }
+
+        .form-group { margin-bottom: 20px; }
+
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
+            font-size: 15px;
             font-weight: 600;
-            color: #2c5e1a;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .form-group input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e1e5e9;
-            border-radius: 12px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            font-family: 'Inter', sans-serif;
-        }
-        
-        .form-group input:focus {
-            outline: none;
-            border-color: #ABDD9C;
-            box-shadow: 0 0 0 3px rgba(171, 221, 156, 0.2);
-        }
-        
-        .form-group input::placeholder {
-            color: #aaa;
+            color: var(--texto);
         }
 
-        .form-group small {
-            display: block;
-            margin-top: 6px;
-            font-size: 12px;
-            color: #aaa;
+        .form-group input {
+            width: 100%;
+            height: 46px;
+            padding: 0 14px;
+            border: 1px solid #9fb2a6;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 16px;
+            color: var(--texto);
+            background: #fff;
+            transition: border-color 0.15s, box-shadow 0.15s;
         }
-        
+
+        .form-group input::placeholder { color: #8a9a90; }
+
+        .form-group input:hover { border-color: var(--verde-700); }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--verde-700);
+            box-shadow: 0 0 0 3px rgba(27, 127, 71, 0.25);
+        }
+
         .btn-submit {
             width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #ABDD9C 0%, #8bc47a 100%);
-            color: #2c5e1a;
+            height: 48px;
+            margin-top: 4px;
+            background: var(--verde-700);
+            color: #fff;
             border: none;
-            border-radius: 12px;
+            border-radius: 4px;
             cursor: pointer;
+            font-family: inherit;
             font-size: 16px;
-            font-weight: 700;
-            transition: all 0.3s ease;
-            font-family: 'Inter', sans-serif;
-            margin-top: 10px;
+            font-weight: 600;
+            transition: background 0.15s;
         }
-        
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-            background: linear-gradient(135deg, #9bcd8a 0%, #7cb56a 100%);
+
+        .btn-submit:hover { background: var(--verde-800); }
+
+        .btn-submit:focus-visible,
+        .btn-login:focus-visible {
+            outline: 3px solid rgba(27, 127, 71, 0.45);
+            outline-offset: 2px;
         }
 
         .divider {
             display: flex;
             align-items: center;
             gap: 12px;
-            margin: 24px 0 16px;
+            margin: 26px 0 16px;
+            color: var(--texto-suave);
+            font-size: 14px;
         }
 
-        .divider hr {
+        .divider::before,
+        .divider::after {
+            content: "";
             flex: 1;
-            width: auto;
             height: 1px;
-            background: #e1e5e9;
-            border: none;
-            margin: 0;
-            border-radius: 0;
-        }
-
-        .divider span {
-            font-size: 13px;
-            color: #aaa;
-            white-space: nowrap;
+            background: var(--borda);
         }
 
         .btn-login {
+            display: block;
             width: 100%;
             padding: 12px;
-            background: white;
-            color: #2c5e1a;
-            border: 2px solid #ABDD9C;
-            border-radius: 12px;
-            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            background: #fff;
+            color: var(--verde-800);
+            border: 1.5px solid var(--verde-700);
+            border-radius: 4px;
             font-size: 16px;
             font-weight: 600;
-            transition: all 0.3s ease;
-            font-family: 'Inter', sans-serif;
-            text-align: center;
-            display: block;
-            text-decoration: none;
-        }
-        
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
-            background: #f4fdf0;
+            transition: background 0.15s;
         }
 
-        .error-message {
-            color: #dc2626;
-            text-align: center;
-            margin-bottom: 20px;
-            padding: 12px;
-            background-color: #fee2e2;
-            border-radius: 12px;
-            max-width: 400px;
-            width: 100%;
-            font-weight: 500;
-        }
+        .btn-login:hover { background: var(--verde-100); }
 
-        .success-message {
-            color: #15803d;
-            text-align: center;
-            margin-bottom: 20px;
-            padding: 12px;
-            background-color: #dcfce7;
-            border-radius: 12px;
-            max-width: 400px;
-            width: 100%;
-            font-weight: 500;
+        /* ---------- Responsivo ---------- */
+        @media (max-width: 860px) {
+            body { grid-template-columns: 1fr; }
+
+            .painel {
+                padding: 24px 24px 28px;
+                gap: 16px;
+            }
+
+            .painel-texto h2 { font-size: 26px; max-width: none; margin-bottom: 8px; }
+            .painel-texto p { font-size: 16px; }
+            .painel-bike { display: none; }
+
+            .conteudo { padding: 28px 16px 40px; align-items: flex-start; }
+            .cartao { padding: 28px 22px 26px; }
         }
     </style>
 </head>
 <body>
-    <h1>Kakatua Bikes WEB</h1>
-    <h2>Crie sua conta no Portal Kakatua Bikes</h2>
-    <hr class="divider-top">
 
-    {% if erro %}
-        <div class="error-message">
-            {{ erro }}
-        </div>
-    {% endif %}
-
-    {% if sucesso %}
-        <div class="success-message">
-            {{ sucesso }}
-        </div>
-    {% endif %}
-
-    <form method="POST" action="{% url 'cadastro' %}" class="cadastro-form">
-        {% csrf_token %}
-
-        <div class="form-group">
-            <label for="login">Usuário (login)</label>
-            <input type="text" name="Login" id="login" placeholder="Escolha um nome de usuário" required>
-        </div>
-        
-        <div class="form-group">
-            <label for="senha">Senha</label>
-            <input type="password" name="Senha" id="senha" placeholder="Crie uma senha" required>
+    <aside class="painel">
+        <div class="marca">
+            Kakatua Bikes
+            <span>Portal do aluno</span>
         </div>
 
-        <div class="form-group">
-            <label for="confirmar_senha">Confirmar senha</label>
-            <input type="password" name="ConfirmarSenha" id="confirmar_senha" placeholder="Repita a senha" required>
-        </div>
-        
-        <button type="submit" class="btn-submit">Criar conta</button>
-
-        <div class="divider">
-            <hr>
-            <span>Já tem uma conta?</span>
-            <hr>
+        <div class="painel-texto">
+            <h2>Crie sua conta de acesso</h2>
+            <p>Com a conta criada, você consulta as estações e guarda sua bicicleta pelo portal.</p>
         </div>
 
-        <a href="{% url 'page1' %}" class="btn-login">Fazer login</a>
-    </form>
+    </aside>
+
+    <main class="conteudo">
+        <div class="cartao">
+            <h1>Criar conta</h1>
+            <p class="subtitulo">Escolha um usuário e uma senha para acessar o portal.</p>
+
+            {% if erro %}
+                <div class="alerta alerta-erro" role="alert">{{ erro }}</div>
+            {% endif %}
+
+            {% if sucesso %}
+                <div class="alerta alerta-sucesso" role="status">{{ sucesso }}</div>
+            {% endif %}
+
+            <form method="POST" action="{% url 'cadastro' %}">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label for="login">Usuário</label>
+                    <input type="text" name="Login" id="login" placeholder="Escolha um nome de usuário" autocomplete="username" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="senha">Senha</label>
+                    <input type="password" name="Senha" id="senha" placeholder="Crie uma senha" autocomplete="new-password" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmar_senha">Confirmar senha</label>
+                    <input type="password" name="ConfirmarSenha" id="confirmar_senha" placeholder="Repita a senha" autocomplete="new-password" required>
+                </div>
+
+                <button type="submit" class="btn-submit">Criar conta</button>
+            </form>
+
+            <div class="divider">Já tem uma conta?</div>
+
+            <a href="{% url 'page1' %}" class="btn-login">Entrar</a>
+        </div>
+    </main>
+
 </body>
 </html>
