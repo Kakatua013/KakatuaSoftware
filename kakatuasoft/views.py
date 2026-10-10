@@ -141,6 +141,7 @@ def ocupar_estacao(request, pk):
 @require_POST
 def liberar_estacao(request, pk):
     with transaction.atomic():
+        Usuario.objects.select_for_update().get(pk=request.usuario.pk)
         estacao = get_object_or_404(Estacao.objects.select_for_update(), pk=pk)
 
         # regra principal: só quem ocupou pode liberar
