@@ -9,18 +9,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --verde-900: #0b3d24;
-            --verde-800: #0f4f2e;
-            --verde-700: #14683a;
-            --verde-600: #1b7f47;
-            --verde-100: #e4f1e8;
-            --verde-50:  #f2f7f3;
+            --verde-950: #0e3b1e;
+            --verde-900: #14502a;
+            --verde-800: #17602d;
+            --verde-700: #1f7a3a;
+            --verde-100: #e3f3e7;
+            --terra-300: #d2bd93;   /* marrom claro (areia) */
+            --terra-200: #e6dcc6;
+            --terra-50:  #faf6ec;
+            --terra-500: #9c8a62;
+            --terra-700: #6b5128;
             --texto:      #1c2b22;
             --texto-suave:#55665c;
-            --borda:      #cfdbd3;
             --erro:       #a8201a;
             --erro-fundo: #fcebea;
-            --sucesso-fundo: #e4f1e8;
+            --alerta:     #7a4d00;
+            --alerta-fundo:#fff4db;
+            --alerta-borda:#d9a21b;
             --fonte-titulo: 'Source Serif 4', Georgia, 'Times New Roman', serif;
             --fonte-texto:  'Source Sans 3', 'Segoe UI', system-ui, -apple-system, sans-serif;
         }
@@ -39,11 +44,14 @@
             background: #fff;
         }
 
-        /* ---------- Painel institucional (esquerda) ---------- */
+        /* ---------- Painel verde com curvas de nível ---------- */
         .painel {
-            background: var(--verde-900);
+            background-color: var(--verde-900);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 1000' preserveAspectRatio='xMidYMid slice'%3E%3Cg fill='none' stroke='%23d2bd93' stroke-opacity='0.32' stroke-width='1.4' stroke-linejoin='round'%3E%3Cpath d='M683 800 L685 804 L686 807 L685 811 L684 814 L682 818 L679 820 L676 822 L672 824 L669 826 L666 827 L662 829 L659 830 L656 832 L653 833 L650 834 L647 834 L643 834 L640 834 L637 833 L634 833 L631 832 L628 831 L624 830 L621 829 L618 829 L614 828 L610 827 L607 825 L604 823 L601 820 L600 817 L599 813 L599 810 L600 806 L601 803 L603 800 L604 797 L605 794 L606 792 L606 789 L607 786 L607 783 L607 779 L608 776 L610 773 L612 770 L615 768 L618 766 L622 765 L625 764 L629 763 L633 763 L636 763 L640 763 L644 763 L647 763 L651 764 L654 765 L657 767 L660 769 L662 772 L663 775 L665 778 L666 780 L667 783 L669 785 L670 787 L673 789 L675 791 L678 794 L681 797Z M727 800 L730 807 L732 815 L731 822 L728 829 L723 835 L718 840 L711 845 L704 849 L698 852 L691 855 L685 858 L679 860 L673 863 L666 865 L660 867 L653 868 L647 869 L640 868 L634 867 L627 865 L621 863 L615 862 L609 860 L602 859 L595 857 L588 856 L581 853 L574 850 L567 846 L562 840 L559 834 L558 827 L558 820 L560 813 L562 806 L565 800 L568 794 L570 789 L572 784 L573 778 L573 772 L574 766 L575 759 L577 752 L580 746 L584 740 L590 736 L596 732 L603 729 L611 728 L618 727 L625 726 L633 726 L640 725 L647 726 L654 726 L661 728 L668 731 L674 734 L679 739 L684 744 L687 750 L689 755 L692 761 L694 766 L697 770 L701 775 L705 779 L711 783 L717 788 L722 794Z M770 800 L775 811 L777 822 L776 833 L772 843 L765 853 L757 861 L747 867 L736 873 L726 878 L717 882 L707 886 L698 891 L689 895 L680 898 L670 901 L660 903 L650 903 L640 902 L630 900 L621 898 L612 895 L603 892 L593 890 L584 888 L573 886 L562 883 L551 880 L541 875 L531 869 L524 860 L519 851 L517 840 L517 830 L520 819 L524 809 L528 800 L532 792 L536 783 L538 775 L539 767 L540 758 L541 748 L542 738 L545 728 L550 719 L557 711 L565 704 L575 698 L585 694 L596 692 L607 690 L618 689 L629 688 L640 688 L651 688 L662 690 L672 692 L682 696 L691 701 L699 708 L705 716 L710 725 L714 733 L718 741 L721 749 L726 756 L731 762 L738 768 L746 774 L755 782 L763 790Z M814 800 L820 814 L823 829 L822 844 L816 858 L807 870 L795 881 L782 890 L769 897 L755 904 L742 909 L730 915 L717 921 L705 926 L693 931 L680 935 L667 937 L653 937 L640 936 L627 934 L614 930 L602 927 L590 923 L578 920 L565 917 L551 915 L536 911 L521 907 L507 900 L495 891 L485 881 L478 868 L475 854 L476 840 L479 825 L485 812 L491 800 L496 789 L501 778 L504 767 L506 756 L507 744 L508 731 L510 718 L514 705 L520 692 L529 681 L540 671 L553 664 L567 659 L582 655 L596 653 L611 652 L626 651 L640 651 L654 651 L669 653 L683 656 L696 661 L708 668 L719 678 L727 688 L734 699 L739 711 L744 722 L748 732 L754 741 L761 749 L771 757 L782 766 L793 776 L804 787Z M857 800 L865 818 L869 836 L867 855 L860 872 L849 888 L834 901 L818 912 L801 921 L784 929 L768 937 L752 944 L737 951 L722 958 L706 964 L690 968 L673 971 L657 972 L640 970 L624 967 L608 963 L593 958 L578 954 L562 950 L546 947 L529 943 L510 939 L492 933 L474 925 L459 914 L446 901 L438 885 L434 867 L435 849 L439 832 L446 815 L453 800 L461 786 L466 772 L470 759 L472 745 L473 730 L474 714 L477 697 L482 681 L490 665 L501 651 L515 639 L531 630 L549 624 L567 619 L585 617 L604 615 L622 614 L640 614 L658 614 L676 616 L694 620 L710 627 L725 636 L738 647 L749 660 L757 674 L764 689 L769 702 L775 715 L783 726 L792 736 L803 746 L817 757 L831 770 L845 784Z M901 800 L911 821 L915 844 L912 866 L904 887 L890 905 L873 921 L853 934 L833 946 L813 955 L793 964 L774 973 L756 981 L738 989 L719 996 L700 1002 L680 1005 L660 1006 L640 1004 L621 1000 L602 995 L583 990 L565 985 L547 980 L527 976 L506 972 L484 967 L462 960 L441 950 L422 937 L407 921 L397 902 L393 881 L394 859 L399 838 L407 818 L416 800 L425 783 L431 767 L436 751 L438 734 L440 716 L441 697 L445 677 L450 657 L460 638 L473 621 L490 607 L509 596 L530 588 L552 583 L574 580 L596 578 L618 577 L640 576 L662 577 L683 579 L704 584 L724 592 L742 603 L758 616 L771 632 L781 649 L788 666 L795 683 L802 698 L811 711 L822 724 L836 736 L852 749 L870 764 L886 781Z M944 800 L956 825 L960 851 L958 877 L948 901 L932 923 L912 941 L889 957 L865 970 L841 981 L819 992 L797 1002 L776 1011 L754 1021 L733 1029 L710 1035 L687 1039 L663 1040 L640 1038 L617 1034 L595 1028 L574 1022 L553 1016 L531 1010 L508 1005 L484 1001 L458 995 L433 987 L408 975 L386 960 L369 941 L357 919 L352 894 L353 869 L359 845 L368 821 L379 800 L389 780 L397 761 L402 743 L405 723 L406 702 L408 680 L412 656 L419 633 L430 611 L445 591 L465 575 L487 562 L512 553 L538 547 L564 543 L589 541 L615 539 L640 539 L665 540 L690 543 L715 548 L738 557 L759 570 L777 586 L792 604 L804 624 L813 644 L821 663 L829 681 L840 696 L853 711 L869 725 L888 740 L908 757 L928 777Z M988 800 L1001 828 L1006 858 L1003 888 L992 915 L974 940 L951 961 L924 979 L897 994 L870 1007 L844 1019 L819 1030 L795 1042 L771 1052 L746 1062 L720 1069 L694 1073 L667 1074 L640 1072 L614 1067 L589 1061 L565 1053 L540 1046 L516 1040 L489 1035 L462 1029 L432 1023 L403 1013 L375 1000 L350 983 L330 961 L317 936 L311 908 L312 879 L319 851 L329 824 L341 800 L353 777 L362 756 L368 734 L371 712 L373 688 L375 662 L379 636 L387 609 L400 584 L418 562 L440 543 L466 528 L494 518 L523 511 L553 506 L582 504 L611 502 L640 502 L669 503 L698 506 L726 512 L752 523 L776 537 L797 555 L814 576 L827 599 L838 622 L847 644 L857 664 L868 681 L883 698 L901 714 L923 732 L946 751 L969 774Z M1031 800 L1046 832 L1052 865 L1049 899 L1036 930 L1016 958 L990 982 L960 1002 L929 1018 L899 1033 L870 1046 L842 1059 L814 1072 L787 1084 L759 1094 L730 1103 L700 1108 L670 1109 L640 1106 L611 1101 L583 1093 L555 1085 L528 1077 L500 1070 L471 1064 L439 1058 L407 1050 L373 1040 L342 1025 L313 1006 L291 981 L276 953 L270 921 L271 889 L279 857 L291 828 L304 800 L317 775 L327 750 L334 726 L338 701 L340 674 L342 645 L347 615 L356 585 L370 557 L390 532 L415 511 L444 494 L476 483 L508 475 L542 470 L575 467 L607 465 L640 464 L673 465 L705 469 L736 476 L766 488 L793 504 L817 524 L836 548 L851 574 L863 600 L873 624 L884 646 L897 667 L913 685 L934 704 L958 723 L985 745 L1010 771Z M1074 800 L1091 836 L1098 873 L1094 909 L1080 944 L1057 975 L1028 1002 L996 1024 L961 1043 L928 1059 L895 1074 L864 1088 L834 1102 L803 1115 L772 1127 L740 1136 L707 1142 L673 1143 L640 1140 L608 1134 L576 1126 L546 1117 L515 1108 L484 1100 L452 1093 L417 1087 L381 1078 L344 1067 L308 1050 L277 1029 L252 1001 L236 970 L228 935 L230 899 L238 864 L252 831 L267 800 L281 772 L292 745 L300 718 L304 690 L306 660 L309 628 L314 595 L324 561 L340 530 L362 502 L390 478 L422 460 L457 447 L494 439 L531 433 L567 430 L604 428 L640 427 L676 428 L712 432 L747 440 L780 453 L810 471 L836 494 L858 520 L874 549 L887 577 L899 605 L911 629 L925 652 L944 673 L967 693 L994 715 L1023 739 L1051 768Z M1118 800 L1136 839 L1144 880 L1139 920 L1124 959 L1099 993 L1067 1022 L1031 1046 L994 1067 L956 1085 L921 1101 L886 1117 L853 1132 L820 1147 L786 1160 L750 1170 L714 1176 L677 1177 L640 1174 L604 1167 L570 1158 L536 1148 L503 1139 L469 1130 L433 1123 L395 1115 L355 1106 L314 1093 L275 1075 L241 1052 L214 1022 L195 987 L187 948 L189 909 L198 870 L213 834 L230 800 L245 769 L258 739 L266 710 L271 679 L273 646 L276 611 L282 574 L292 538 L310 503 L334 472 L365 446 L400 426 L439 412 L479 402 L520 396 L560 393 L600 390 L640 390 L680 391 L719 396 L758 404 L794 418 L827 438 L856 463 L879 492 L898 524 L912 555 L925 585 L938 612 L954 637 L974 660 L1000 682 L1029 706 L1061 733 L1092 764Z M153 150 L152 153 L150 155 L149 157 L148 159 L147 161 L145 163 L144 165 L142 167 L141 169 L139 170 L136 171 L134 172 L132 173 L129 173 L127 174 L125 174 L122 175 L120 176 L117 177 L115 177 L112 178 L109 178 L106 177 L103 176 L101 174 L99 172 L98 170 L97 167 L97 165 L96 162 L96 160 L95 158 L94 156 L93 154 L92 152 L91 150 L90 148 L89 145 L89 143 L89 140 L90 138 L92 135 L94 133 L96 132 L98 130 L100 128 L102 127 L104 126 L107 124 L109 124 L112 123 L115 123 L117 123 L120 124 L122 125 L125 126 L127 128 L129 129 L130 130 L132 131 L135 131 L137 132 L140 132 L143 133 L146 134 L149 135 L151 137 L153 139 L154 142 L154 145 L154 147Z M190 150 L188 155 L185 160 L182 165 L179 169 L177 174 L174 178 L171 182 L168 186 L164 190 L160 193 L155 195 L150 197 L145 198 L140 199 L135 201 L130 202 L125 203 L120 205 L114 207 L109 208 L102 209 L96 209 L90 208 L84 206 L80 202 L76 197 L73 192 L72 187 L70 181 L70 176 L69 172 L67 167 L65 163 L63 159 L60 155 L57 150 L55 145 L54 140 L54 134 L55 129 L57 123 L60 119 L64 114 L68 111 L72 107 L77 104 L82 101 L87 98 L92 95 L97 94 L103 92 L109 92 L114 93 L120 94 L125 97 L130 100 L134 102 L138 105 L142 107 L146 109 L151 110 L157 111 L163 112 L169 113 L175 115 L181 118 L186 122 L190 127 L192 133 L193 138 L192 144Z M228 150 L224 158 L220 166 L215 173 L211 180 L207 186 L203 193 L198 199 L193 205 L187 211 L181 215 L174 219 L166 222 L158 224 L151 226 L143 227 L136 229 L128 232 L120 234 L112 237 L102 240 L93 241 L83 241 L74 239 L65 235 L58 230 L52 223 L48 214 L46 206 L44 198 L43 190 L41 183 L39 176 L36 170 L33 164 L28 157 L24 150 L21 142 L19 134 L18 126 L20 117 L23 109 L28 102 L34 96 L40 90 L47 84 L54 79 L61 75 L69 70 L77 67 L85 64 L94 62 L103 61 L111 62 L120 65 L128 68 L135 73 L142 77 L148 81 L154 85 L160 87 L168 89 L176 90 L185 91 L195 93 L205 96 L214 101 L222 107 L227 115 L231 123 L232 132 L231 141Z M265 150 L260 161 L254 171 L248 181 L242 190 L237 199 L231 208 L225 216 L218 224 L211 232 L202 238 L192 243 L182 247 L172 250 L161 252 L151 254 L141 257 L131 260 L120 264 L109 267 L96 271 L84 273 L70 272 L58 270 L46 265 L37 257 L29 248 L23 237 L20 226 L18 214 L16 204 L14 194 L11 186 L7 177 L2 169 L-3 160 L-9 150 L-13 139 L-16 128 L-17 117 L-15 106 L-10 95 L-4 86 L4 77 L12 69 L22 62 L31 55 L41 49 L51 43 L62 38 L73 34 L85 31 L97 30 L109 32 L120 35 L131 40 L140 46 L149 52 L157 57 L166 62 L174 65 L184 67 L195 69 L208 71 L221 74 L234 78 L247 84 L257 93 L265 103 L269 114 L270 126 L269 138Z'/%3E%3C/g%3E%3C/svg%3E");
+            background-size: cover;
+            background-position: right bottom;
             color: #fff;
-            padding: 56px 56px 40px;
+            padding: 56px 56px 48px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -52,9 +60,9 @@
 
         .marca {
             font-family: var(--fonte-titulo);
-            font-size: 26px;
+            font-size: 28px;
             font-weight: 700;
-            letter-spacing: 0.2px;
+            line-height: 1.2;
         }
 
         .marca span {
@@ -63,7 +71,7 @@
             font-family: var(--fonte-texto);
             font-size: 15px;
             font-weight: 400;
-            color: rgba(255, 255, 255, 0.72);
+            color: var(--terra-200);
         }
 
         .painel-texto h2 {
@@ -77,46 +85,44 @@
 
         .painel-texto p {
             max-width: 38ch;
-            color: rgba(255, 255, 255, 0.8);
             font-size: 17px;
+            color: rgba(255, 255, 255, 0.9);
         }
 
-        .painel-bike {
-            width: 100%;
-            max-width: 340px;
-            color: rgba(255, 255, 255, 0.28);
-        }
-
-        /* ---------- Área do formulário (direita) ---------- */
+        /* ---------- Formulário (fundo branco, sem caixa) ---------- */
         .conteudo {
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 40px 24px;
-            background: var(--verde-50);
-        }
-
-        .cartao {
-            width: 100%;
-            max-width: 420px;
             background: #fff;
-            border: 1px solid var(--borda);
-            border-top: 4px solid var(--verde-700);
-            border-radius: 6px;
-            padding: 36px 36px 32px;
         }
 
-        .cartao h1 {
+        .formulario {
+            width: 100%;
+            max-width: 380px;
+        }
+
+        .formulario h1 {
             font-family: var(--fonte-titulo);
-            font-size: 28px;
+            font-size: 32px;
             line-height: 1.2;
-            color: var(--verde-900);
-            margin-bottom: 6px;
+            color: var(--verde-950);
         }
 
-        .cartao .subtitulo {
+        .formulario h1::after {
+            content: "";
+            display: block;
+            width: 44px;
+            height: 4px;
+            margin: 12px 0 14px;
+            border-radius: 2px;
+            background: var(--terra-300);
+        }
+
+        .formulario .subtitulo {
             color: var(--texto-suave);
-            margin-bottom: 24px;
+            margin-bottom: 28px;
         }
 
         .alerta {
@@ -135,9 +141,9 @@
         }
 
         .alerta-sucesso {
-            background: var(--sucesso-fundo);
+            background: var(--verde-100);
             color: var(--verde-800);
-            border-color: var(--verde-600);
+            border-color: var(--verde-700);
         }
 
         .form-group { margin-bottom: 20px; }
@@ -154,7 +160,7 @@
             width: 100%;
             height: 46px;
             padding: 0 14px;
-            border: 1px solid #9fb2a6;
+            border: 1px solid var(--terra-500);
             border-radius: 4px;
             font-family: inherit;
             font-size: 16px;
@@ -170,7 +176,7 @@
         .form-group input:focus {
             outline: none;
             border-color: var(--verde-700);
-            box-shadow: 0 0 0 3px rgba(27, 127, 71, 0.25);
+            box-shadow: 0 0 0 3px rgba(31, 122, 58, 0.25);
         }
 
         .btn-submit {
@@ -191,60 +197,36 @@
         .btn-submit:hover { background: var(--verde-800); }
 
         .btn-submit:focus-visible,
-        .btn-login:focus-visible {
-            outline: 3px solid rgba(27, 127, 71, 0.45);
+        .alternativa a:focus-visible {
+            outline: 3px solid rgba(31, 122, 58, 0.5);
             outline-offset: 2px;
         }
 
-        .divider {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 26px 0 16px;
+        .alternativa {
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid var(--terra-200);
             color: var(--texto-suave);
-            font-size: 14px;
         }
 
-        .divider::before,
-        .divider::after {
-            content: "";
-            flex: 1;
-            height: 1px;
-            background: var(--borda);
-        }
-
-        .btn-login {
-            display: block;
-            width: 100%;
-            padding: 12px;
-            text-align: center;
-            text-decoration: none;
-            background: #fff;
+        .alternativa a {
             color: var(--verde-800);
-            border: 1.5px solid var(--verde-700);
-            border-radius: 4px;
-            font-size: 16px;
             font-weight: 600;
-            transition: background 0.15s;
+            text-decoration: underline;
+            text-underline-offset: 3px;
         }
 
-        .btn-login:hover { background: var(--verde-100); }
+        .alternativa a:hover { color: var(--verde-950); }
 
         /* ---------- Responsivo ---------- */
         @media (max-width: 860px) {
             body { grid-template-columns: 1fr; }
 
-            .painel {
-                padding: 24px 24px 28px;
-                gap: 16px;
-            }
-
+            .painel { padding: 28px 24px 32px; gap: 18px; }
             .painel-texto h2 { font-size: 26px; max-width: none; margin-bottom: 8px; }
             .painel-texto p { font-size: 16px; }
-            .painel-bike { display: none; }
 
-            .conteudo { padding: 28px 16px 40px; align-items: flex-start; }
-            .cartao { padding: 28px 22px 26px; }
+            .conteudo { padding: 32px 20px 48px; align-items: flex-start; }
         }
     </style>
 </head>
@@ -260,11 +242,10 @@
             <h2>Crie sua conta de acesso</h2>
             <p>Com a conta criada, você consulta as estações e guarda sua bicicleta pelo portal.</p>
         </div>
-
     </aside>
 
     <main class="conteudo">
-        <div class="cartao">
+        <div class="formulario">
             <h1>Criar conta</h1>
             <p class="subtitulo">Escolha um usuário e uma senha para acessar o portal.</p>
 
@@ -297,9 +278,7 @@
                 <button type="submit" class="btn-submit">Criar conta</button>
             </form>
 
-            <div class="divider">Já tem uma conta?</div>
-
-            <a href="{% url 'page1' %}" class="btn-login">Entrar</a>
+            <p class="alternativa">Já tem uma conta? <a href="{% url 'page1' %}">Entrar</a></p>
         </div>
     </main>
 

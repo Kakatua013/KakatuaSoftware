@@ -9,17 +9,19 @@
     <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --verde-900: #0b3d24;
-            --verde-800: #0f4f2e;
-            --verde-700: #14683a;
-            --verde-600: #1b7f47;
-            --verde-100: #e4f1e8;
-            --verde-50:  #f2f7f3;
+            --verde-950: #0e3b1e;
+            --verde-900: #14502a;
+            --verde-800: #17602d;
+            --verde-700: #1f7a3a;
+            --verde-100: #e3f3e7;
+            --terra-300: #d2bd93;   /* marrom claro (areia) */
+            --terra-200: #e6dcc6;
+            --terra-50:  #faf6ec;
+            --terra-500: #9c8a62;
+            --terra-700: #6b5128;
             --texto:      #1c2b22;
             --texto-suave:#55665c;
-            --borda:      #cfdbd3;
             --erro:       #a8201a;
-            --erro-escuro:#85160f;
             --erro-fundo: #fcebea;
             --alerta:     #7a4d00;
             --alerta-fundo:#fff4db;
@@ -37,21 +39,32 @@
             font-size: 16px;
             line-height: 1.5;
             color: var(--texto);
-            background: var(--verde-50);
+            background: #fff;
         }
 
-        /* ---------- Barra superior ---------- */
+        .limite {
+            max-width: 1040px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ---------- Topo verde com curvas de nível ---------- */
+        .topo {
+            background-color: var(--verde-900);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 340' preserveAspectRatio='xMidYMid slice'%3E%3Cg fill='none' stroke='%23d2bd93' stroke-opacity='0.32' stroke-width='1.4' stroke-linejoin='round'%3E%3Cpath d='M1348 230 L1348 232 L1347 234 L1346 236 L1345 238 L1343 240 L1341 241 L1340 242 L1338 244 L1337 245 L1335 246 L1333 247 L1332 248 L1330 249 L1328 250 L1326 250 L1324 250 L1322 250 L1320 250 L1318 250 L1316 249 L1314 249 L1312 250 L1310 250 L1308 249 L1305 249 L1303 248 L1301 247 L1299 246 L1298 244 L1298 242 L1298 239 L1298 237 L1298 235 L1299 233 L1299 232 L1299 230 L1299 228 L1298 227 L1298 225 L1298 223 L1298 221 L1298 219 L1299 217 L1300 215 L1301 213 L1303 212 L1305 211 L1307 210 L1309 209 L1311 209 L1314 208 L1316 208 L1318 208 L1320 208 L1322 208 L1324 208 L1326 209 L1328 211 L1329 212 L1331 213 L1332 215 L1333 216 L1334 217 L1335 218 L1337 219 L1339 220 L1341 221 L1343 223 L1345 224 L1346 226 L1348 228Z M1379 230 L1378 235 L1377 239 L1375 243 L1371 247 L1368 250 L1364 253 L1361 256 L1358 258 L1354 261 L1351 263 L1348 266 L1344 268 L1340 269 L1336 271 L1332 271 L1328 272 L1324 271 L1320 271 L1316 271 L1312 271 L1308 271 L1304 271 L1299 271 L1294 270 L1289 270 L1285 268 L1281 266 L1277 262 L1275 258 L1274 254 L1273 250 L1274 245 L1274 241 L1275 237 L1276 233 L1276 230 L1276 227 L1275 223 L1274 219 L1274 215 L1274 211 L1274 206 L1276 202 L1278 199 L1281 195 L1285 193 L1289 190 L1293 189 L1298 187 L1302 186 L1307 185 L1311 184 L1315 183 L1320 183 L1324 184 L1329 185 L1333 187 L1336 189 L1339 192 L1342 196 L1344 199 L1347 201 L1349 204 L1352 206 L1355 208 L1359 210 L1363 212 L1368 214 L1372 218 L1375 221 L1377 225Z M1409 230 L1409 237 L1407 244 L1403 250 L1398 256 L1393 261 L1388 265 L1382 269 L1377 273 L1372 277 L1367 281 L1362 284 L1357 287 L1351 290 L1345 292 L1339 293 L1332 293 L1326 293 L1320 292 L1314 292 L1308 292 L1302 292 L1295 292 L1288 292 L1281 291 L1273 290 L1266 288 L1260 284 L1255 279 L1251 273 L1250 267 L1249 260 L1250 253 L1251 247 L1252 241 L1253 235 L1253 230 L1253 225 L1252 219 L1251 213 L1250 207 L1250 201 L1251 194 L1253 188 L1257 182 L1261 177 L1267 173 L1273 170 L1280 167 L1286 165 L1293 163 L1300 161 L1306 160 L1313 159 L1320 159 L1327 160 L1333 162 L1340 164 L1345 168 L1350 173 L1354 178 L1357 182 L1360 187 L1364 190 L1368 194 L1373 196 L1379 199 L1386 202 L1392 206 L1398 211 L1404 217 L1407 223Z M1439 230 L1439 239 L1436 248 L1431 257 L1425 264 L1418 271 L1411 277 L1404 283 L1397 288 L1390 293 L1384 298 L1377 303 L1369 307 L1362 311 L1354 313 L1345 314 L1337 315 L1328 314 L1320 314 L1312 313 L1304 313 L1295 313 L1286 313 L1277 313 L1267 312 L1257 311 L1248 307 L1239 302 L1233 296 L1228 288 L1225 279 L1225 270 L1226 261 L1227 252 L1229 244 L1230 237 L1230 230 L1230 223 L1229 215 L1227 208 L1226 199 L1226 190 L1227 182 L1230 173 L1235 166 L1241 159 L1249 154 L1257 149 L1266 146 L1275 143 L1284 140 L1293 138 L1302 136 L1311 135 L1320 135 L1329 136 L1338 138 L1346 142 L1353 147 L1360 153 L1365 160 L1370 166 L1374 172 L1379 177 L1385 181 L1392 185 L1399 189 L1408 193 L1417 198 L1425 205 L1432 212 L1437 221Z M1470 230 L1469 242 L1466 253 L1460 264 L1452 273 L1443 282 L1434 289 L1425 296 L1416 303 L1408 309 L1400 316 L1391 321 L1382 327 L1372 331 L1362 334 L1351 336 L1341 336 L1330 336 L1320 335 L1310 334 L1300 334 L1289 334 L1278 334 L1266 334 L1254 333 L1241 331 L1229 327 L1219 321 L1210 313 L1205 303 L1201 292 L1200 280 L1201 269 L1203 258 L1206 248 L1207 239 L1208 230 L1207 221 L1205 212 L1203 202 L1202 191 L1202 180 L1203 169 L1207 159 L1213 149 L1221 141 L1231 134 L1241 129 L1252 124 L1263 120 L1274 117 L1286 114 L1297 112 L1308 111 L1320 110 L1332 112 L1343 115 L1353 120 L1362 126 L1370 134 L1377 142 L1383 150 L1388 157 L1394 163 L1401 169 L1410 173 L1420 178 L1430 184 L1442 190 L1452 198 L1461 208 L1467 218Z M1500 230 L1500 244 L1495 258 L1488 271 L1479 282 L1468 292 L1457 301 L1446 310 L1436 318 L1426 325 L1416 333 L1406 340 L1395 346 L1383 352 L1371 355 L1358 357 L1345 358 L1332 357 L1320 356 L1308 356 L1296 355 L1283 355 L1269 355 L1255 355 L1240 354 L1225 352 L1211 347 L1198 339 L1188 330 L1181 318 L1177 304 L1176 290 L1177 277 L1180 264 L1182 252 L1184 241 L1185 230 L1184 219 L1182 208 L1180 196 L1178 183 L1178 170 L1180 157 L1184 144 L1192 133 L1201 123 L1213 115 L1225 108 L1238 103 L1252 98 L1265 94 L1279 91 L1292 88 L1306 86 L1320 86 L1334 88 L1347 91 L1360 97 L1371 105 L1380 114 L1388 124 L1395 133 L1402 142 L1409 150 L1418 156 L1428 162 L1440 168 L1453 174 L1466 182 L1479 192 L1489 203 L1497 216Z M1531 230 L1530 247 L1525 263 L1516 277 L1505 291 L1493 303 L1480 313 L1467 323 L1455 332 L1444 341 L1432 350 L1420 359 L1407 366 L1394 372 L1379 376 L1364 379 L1349 379 L1334 379 L1320 378 L1306 377 L1291 376 L1276 376 L1261 376 L1244 376 L1227 375 L1209 372 L1193 367 L1178 358 L1166 346 L1158 332 L1153 317 L1152 301 L1153 285 L1156 270 L1159 256 L1161 242 L1162 230 L1161 217 L1159 204 L1156 190 L1154 176 L1154 160 L1156 145 L1161 130 L1170 117 L1181 105 L1195 95 L1209 88 L1225 81 L1240 76 L1256 71 L1272 67 L1288 64 L1304 62 L1320 62 L1336 64 L1352 68 L1366 75 L1379 84 L1390 95 L1400 106 L1408 117 L1416 127 L1424 136 L1434 144 L1446 150 L1460 157 L1475 165 L1491 174 L1506 185 L1518 199 L1527 214Z M1561 230 L1561 249 L1555 267 L1545 284 L1532 299 L1518 313 L1503 325 L1489 336 L1475 347 L1462 358 L1448 368 L1435 377 L1420 386 L1404 393 L1388 397 L1371 400 L1353 401 L1337 400 L1320 399 L1304 398 L1287 397 L1270 397 L1252 398 L1233 398 L1213 396 L1193 393 L1174 386 L1157 376 L1144 363 L1134 347 L1129 329 L1128 311 L1129 293 L1132 275 L1136 259 L1138 244 L1139 230 L1138 216 L1135 201 L1132 185 L1130 168 L1129 150 L1132 132 L1138 116 L1148 100 L1161 87 L1176 76 L1193 67 L1211 60 L1229 54 L1247 48 L1265 44 L1283 40 L1301 38 L1320 37 L1339 40 L1356 44 L1373 52 L1388 63 L1400 75 L1411 88 L1421 101 L1430 112 L1439 122 L1451 131 L1464 139 L1480 147 L1498 155 L1516 166 L1533 179 L1547 194 L1557 211Z M1592 230 L1591 251 L1584 272 L1573 291 L1559 308 L1543 323 L1526 337 L1510 350 L1495 362 L1480 374 L1465 385 L1449 396 L1433 405 L1415 413 L1396 419 L1377 422 L1358 423 L1339 422 L1320 421 L1302 419 L1283 418 L1264 418 L1244 419 L1222 419 L1200 417 L1177 413 L1156 406 L1137 395 L1122 380 L1111 362 L1105 342 L1103 321 L1105 300 L1109 281 L1113 263 L1115 246 L1116 230 L1115 214 L1112 197 L1108 179 L1106 160 L1105 140 L1108 120 L1116 101 L1127 84 L1141 69 L1158 57 L1177 46 L1197 38 L1217 31 L1237 26 L1258 20 L1278 16 L1299 14 L1320 13 L1341 15 L1361 21 L1380 30 L1396 42 L1410 55 L1423 70 L1433 84 L1444 97 L1455 109 L1467 119 L1483 127 L1501 136 L1520 146 L1540 158 L1559 172 L1575 189 L1586 209Z M1622 230 L1621 254 L1614 277 L1602 298 L1586 317 L1568 334 L1549 349 L1531 363 L1514 377 L1497 390 L1481 402 L1463 414 L1445 425 L1426 434 L1405 440 L1383 443 L1362 444 L1341 443 L1320 442 L1300 440 L1279 439 L1258 439 L1235 440 L1211 440 L1186 438 L1161 434 L1137 426 L1116 413 L1099 397 L1087 377 L1081 354 L1079 331 L1081 308 L1085 287 L1089 267 L1093 248 L1093 230 L1092 212 L1089 193 L1085 173 L1082 152 L1081 130 L1085 108 L1093 87 L1105 68 L1121 51 L1140 37 L1161 26 L1183 17 L1206 9 L1228 3 L1251 -3 L1273 -8 L1297 -11 L1320 -11 L1343 -9 L1366 -2 L1386 8 L1405 21 L1421 36 L1434 52 L1446 68 L1457 83 L1470 95 L1484 106 L1501 116 L1521 126 L1543 137 L1565 150 L1586 166 L1604 185 L1616 207Z M1653 230 L1652 256 L1644 281 L1630 305 L1612 326 L1593 344 L1572 361 L1553 377 L1534 391 L1515 406 L1497 420 L1478 433 L1458 445 L1436 454 L1413 461 L1390 465 L1366 466 L1343 465 L1320 463 L1297 462 L1275 461 L1251 461 L1227 461 L1200 461 L1173 459 L1145 455 L1119 446 L1096 432 L1077 414 L1064 391 L1057 367 L1055 341 L1057 316 L1061 292 L1066 270 L1070 250 L1071 230 L1069 210 L1065 190 L1061 168 L1058 144 L1057 120 L1061 95 L1070 72 L1083 51 L1101 33 L1122 18 L1145 5 L1169 -5 L1194 -13 L1219 -20 L1244 -26 L1269 -32 L1294 -35 L1320 -35 L1346 -33 L1370 -26 L1393 -15 L1413 -1 L1431 16 L1446 34 L1459 52 L1471 68 L1485 82 L1500 94 L1519 104 L1541 115 L1565 127 L1590 142 L1613 159 L1632 180 L1646 204Z M280 300 L280 302 L279 303 L279 305 L278 306 L278 307 L277 309 L276 310 L275 311 L273 312 L272 313 L270 313 L269 314 L268 315 L266 316 L265 317 L264 318 L262 319 L260 319 L258 320 L256 320 L254 319 L253 318 L251 317 L250 316 L249 314 L248 313 L247 311 L247 310 L246 309 L245 308 L243 307 L242 306 L241 305 L240 303 L239 302 L238 300 L238 298 L239 297 L239 295 L240 293 L241 292 L242 291 L243 289 L244 288 L245 287 L247 286 L248 285 L250 284 L251 283 L253 283 L255 283 L257 284 L258 284 L260 285 L261 285 L263 286 L264 286 L266 285 L268 285 L270 285 L272 285 L274 285 L276 286 L278 287 L279 288 L280 290 L281 291 L281 293 L281 295 L281 297 L280 298Z M304 300 L303 303 L302 307 L302 310 L300 313 L299 316 L297 319 L295 322 L292 324 L289 326 L286 328 L283 330 L280 331 L277 333 L274 335 L271 337 L268 339 L264 341 L260 343 L256 344 L251 344 L247 342 L244 341 L240 338 L238 335 L236 331 L234 328 L232 325 L230 322 L228 320 L226 318 L223 315 L220 313 L218 310 L215 307 L214 304 L212 300 L212 296 L213 293 L214 289 L216 285 L218 282 L220 279 L222 276 L225 273 L227 271 L230 268 L234 266 L237 265 L241 264 L245 263 L249 264 L253 265 L257 266 L260 267 L263 268 L266 268 L269 268 L273 268 L277 267 L281 267 L286 267 L291 267 L295 269 L299 271 L302 273 L304 277 L306 281 L306 285 L306 289 L305 293 L305 296Z M328 300 L327 305 L325 310 L324 315 L322 320 L320 325 L317 330 L314 334 L309 337 L305 340 L300 343 L296 346 L291 348 L286 351 L282 354 L277 358 L272 361 L266 364 L260 366 L253 367 L247 367 L240 366 L235 363 L230 358 L226 354 L222 348 L220 343 L217 339 L214 335 L211 331 L207 327 L203 324 L199 320 L195 316 L191 311 L188 306 L187 300 L186 294 L187 288 L189 283 L192 278 L195 273 L198 268 L202 263 L206 259 L210 255 L214 251 L219 248 L225 245 L231 244 L237 243 L243 244 L249 245 L255 247 L260 249 L265 250 L270 251 L275 251 L280 250 L286 250 L293 249 L300 249 L307 249 L314 251 L320 255 L325 259 L328 264 L331 270 L331 277 L331 283 L330 289 L329 295Z M352 300 L350 307 L349 314 L347 321 L344 328 L341 334 L337 340 L333 346 L327 351 L321 355 L314 358 L308 362 L302 365 L296 369 L290 373 L283 378 L276 382 L268 387 L260 390 L251 391 L242 391 L234 389 L226 385 L219 379 L214 372 L209 365 L205 359 L202 352 L198 347 L194 342 L189 337 L183 332 L177 327 L172 321 L167 315 L163 308 L161 300 L160 292 L161 284 L164 277 L167 270 L172 263 L176 256 L181 250 L186 244 L192 239 L198 234 L205 229 L212 226 L221 224 L229 223 L237 224 L245 226 L253 228 L260 231 L267 232 L273 233 L280 234 L287 233 L295 232 L304 231 L314 230 L324 232 L333 234 L341 239 L348 245 L353 252 L355 260 L356 268 L356 277 L355 285 L353 293Z'/%3E%3C/g%3E%3C/svg%3E");
+            background-size: cover;
+            background-position: right center;
+            color: #fff;
+            padding-bottom: 92px;
+        }
+
         .navbar {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 16px;
-            padding: 14px 32px;
-            background: var(--verde-900);
-            color: #fff;
+            padding-top: 18px;
+            padding-bottom: 18px;
         }
 
         .marca {
@@ -66,7 +79,7 @@
             font-family: var(--fonte-texto);
             font-size: 13px;
             font-weight: 400;
-            color: rgba(255, 255, 255, 0.72);
+            color: var(--terra-200);
         }
 
         .navbar-usuario {
@@ -88,8 +101,8 @@
             border-radius: 50%;
             display: grid;
             place-items: center;
-            background: #fff;
-            color: var(--verde-800);
+            background: var(--terra-300);
+            color: var(--verde-950);
             font-weight: 600;
             font-size: 15px;
         }
@@ -115,33 +128,31 @@
             border-color: #fff;
         }
 
-        /* ---------- Conteúdo ---------- */
-        .main-content {
-            width: 100%;
-            max-width: 1040px;
-            margin: 0 auto;
-            padding: 36px 24px 56px;
-        }
-
-        .cabecalho {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: flex-end;
-            gap: 12px 24px;
-            margin-bottom: 24px;
-        }
+        .cabecalho { padding-top: 28px; }
 
         .cabecalho h1 {
             font-family: var(--fonte-titulo);
-            font-size: 32px;
+            font-size: 34px;
             line-height: 1.2;
-            color: var(--verde-900);
         }
 
-        .cabecalho p {
-            color: var(--texto-suave);
-            margin-top: 4px;
+        .cabecalho h1::after {
+            content: "";
+            display: block;
+            width: 44px;
+            height: 4px;
+            margin: 12px 0 12px;
+            border-radius: 2px;
+            background: var(--terra-300);
+        }
+
+        .cabecalho p { color: rgba(255, 255, 255, 0.92); }
+
+        /* ---------- Conteúdo (sobrepõe a base do topo) ---------- */
+        .main-content {
+            position: relative;
+            margin-top: -56px;
+            padding-bottom: 56px;
         }
 
         /* Aviso exibido só quando o servidor está indisponível (controlado pelo script) */
@@ -159,7 +170,7 @@
             padding: 12px 14px;
             margin-bottom: 20px;
             border-radius: 4px;
-            border-left: 4px solid var(--verde-600);
+            border-left: 4px solid var(--verde-700);
             background: var(--verde-100);
             color: var(--verde-800);
             font-weight: 500;
@@ -176,14 +187,15 @@
             display: flex;
             flex-direction: column;
             background: #fff;
-            border: 1px solid var(--borda);
-            border-top: 4px solid var(--verde-600);
+            border: 1px solid var(--terra-200);
+            border-left: 5px solid var(--verde-700);
             border-radius: 6px;
             padding: 24px;
+            box-shadow: 0 6px 20px rgba(20, 60, 30, 0.1);
         }
 
-        .card-estacao[data-situacao="sua"]     { border-top-color: var(--verde-900); }
-        .card-estacao[data-situacao="ocupada"] { border-top-color: var(--erro); }
+        .card-estacao[data-situacao="sua"]     { border-left-color: var(--verde-950); }
+        .card-estacao[data-situacao="ocupada"] { border-left-color: var(--erro); }
 
         .card-topo {
             display: flex;
@@ -197,7 +209,7 @@
             font-family: var(--fonte-titulo);
             font-size: 22px;
             line-height: 1.25;
-            color: var(--verde-900);
+            color: var(--verde-950);
         }
 
         .selo {
@@ -219,11 +231,12 @@
             justify-content: space-between;
             align-items: center;
             gap: 12px;
-            padding: 10px 0;
+            padding: 10px 12px;
             margin-bottom: 18px;
-            border-top: 1px solid var(--borda);
-            border-bottom: 1px solid var(--borda);
-            color: var(--texto-suave);
+            border-radius: 4px;
+            background: var(--terra-50);
+            border: 1px solid var(--terra-200);
+            color: var(--terra-700);
             font-size: 15px;
         }
 
@@ -301,15 +314,16 @@
             padding: 40px 24px;
             text-align: center;
             background: #fff;
-            border: 1px dashed var(--borda);
+            border: 1px dashed var(--terra-500);
             border-radius: 6px;
             color: var(--texto-suave);
         }
 
-        .btn-sair:focus-visible,
+        .btn-sair:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+
         .btn-acao:focus-visible,
         .btn-liberar:focus-visible {
-            outline: 3px solid rgba(27, 127, 71, 0.5);
+            outline: 3px solid rgba(31, 122, 58, 0.5);
             outline-offset: 2px;
         }
 
@@ -318,9 +332,9 @@
            aparelho e após recarregar. Quem não tem bike guardada vê a grade normal. */
         .txt-foco { display: none; }
 
-        .main-content:has(.card-estacao[data-situacao="sua"]) .txt-normal { display: none; }
-        .main-content:has(.card-estacao[data-situacao="sua"]) .txt-foco   { display: inline; }
-        .main-content:has(.card-estacao[data-situacao="sua"]) .cabecalho p.txt-foco { display: block; }
+        body:has(.card-estacao[data-situacao="sua"]) .txt-normal { display: none; }
+        body:has(.card-estacao[data-situacao="sua"]) h1 .txt-foco { display: inline; }
+        body:has(.card-estacao[data-situacao="sua"]) p.txt-foco   { display: block; }
 
         .grade:has(.card-estacao[data-situacao="sua"]) {
             grid-template-columns: minmax(0, 600px);
@@ -335,7 +349,7 @@
 
         .card-estacao[data-situacao="sua"] { padding: 36px; }
         .card-estacao[data-situacao="sua"] h2 { font-size: 28px; }
-        .card-estacao[data-situacao="sua"] .tranca-info { padding: 18px 0; font-size: 17px; }
+        .card-estacao[data-situacao="sua"] .tranca-info { padding: 16px 18px; font-size: 17px; }
         .card-estacao[data-situacao="sua"] .tranca { font-size: 20px; }
         .card-estacao[data-situacao="sua"] .card-corpo { gap: 14px; }
         .card-estacao[data-situacao="sua"] .card-corpo h3 { font-size: 20px; }
@@ -345,10 +359,11 @@
 
         /* ---------- Responsivo ---------- */
         @media (max-width: 600px) {
-            .navbar { padding: 12px 16px; }
+            .limite { padding: 0 16px; }
             .usuario span.nome-completo { display: none; }
-            .main-content { padding: 24px 16px 40px; }
-            .cabecalho h1 { font-size: 26px; }
+            .topo { padding-bottom: 76px; }
+            .cabecalho h1 { font-size: 28px; }
+            .main-content { margin-top: -44px; padding-bottom: 40px; }
             .grade,
             .grade:has(.card-estacao[data-situacao="sua"]) { grid-template-columns: 1fr; }
             .card-estacao[data-situacao="sua"] { padding: 24px; }
@@ -357,37 +372,37 @@
 </head>
 <body>
 
-    <nav class="navbar">
-        <div class="marca">
-            Kakatua Bikes
-            <span>Portal do aluno</span>
-        </div>
-
-        <div class="navbar-usuario">
-            <div class="usuario">
-                <div class="avatar" aria-hidden="true">{{ usuario.Login|first|upper }}</div>
-                <span class="nome-completo">Olá, <strong>{{ usuario.Login }}</strong></span>
+    <header class="topo">
+        <nav class="navbar limite">
+            <div class="marca">
+                Kakatua Bikes
+                <span>Portal do aluno</span>
             </div>
 
-            <form action="{% url 'logout' %}" method="post" style="margin: 0;">
-                {% csrf_token %}
-                <button type="submit" class="btn-sair">Sair</button>
-            </form>
-        </div>
-    </nav>
+            <div class="navbar-usuario">
+                <div class="usuario">
+                    <div class="avatar" aria-hidden="true">{{ usuario.Login|first|upper }}</div>
+                    <span class="nome-completo">Olá, <strong>{{ usuario.Login }}</strong></span>
+                </div>
 
-    <main class="main-content">
-
-        <div class="cabecalho">
-            <div>
-                <h1>
-                    <span class="txt-normal">Estações</span>
-                    <span class="txt-foco">Sua estação</span>
-                </h1>
-                <p class="txt-normal">Guarde sua bike em uma estação disponível.</p>
-                <p class="txt-foco">Acompanhe sua bike e libere a estação quando for retirá-la.</p>
+                <form action="{% url 'logout' %}" method="post" style="margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-sair">Sair</button>
+                </form>
             </div>
+        </nav>
+
+        <div class="cabecalho limite">
+            <h1>
+                <span class="txt-normal">Estações</span>
+                <span class="txt-foco">Sua estação</span>
+            </h1>
+            <p class="txt-normal">Guarde sua bike em uma estação disponível.</p>
+            <p class="txt-foco">Acompanhe sua bike e libere a estação quando for retirá-la.</p>
         </div>
+    </header>
+
+    <main class="main-content limite">
 
         <!-- Aparece só quando não há resposta do servidor (atualizado pelo script) -->
         <p id="banner-bloqueio" class="banner" role="status" {% if bloqueada is not None %}hidden{% endif %}>
@@ -468,7 +483,7 @@
     </main>
 
     <script>
-        // Atualiza banner, trancas e botões a cada 5s, sem recarregar a página.
+        // Atualiza aviso, trancas e botões a cada 5s, sem recarregar a página.
         // Usa setTimeout recursivo: a próxima consulta só é agendada quando a anterior termina.
         async function atualizar() {
             try {
