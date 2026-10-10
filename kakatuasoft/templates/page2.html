@@ -1,5 +1,7 @@
+
+
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,8 +18,9 @@
             background: linear-gradient(135deg, #ABDD9C 0%, #8bc47a 100%);
             min-height: 100vh;
             display: flex;
-            flex-direction: column; /* Alinha itens de cima para baixo */
+            flex-direction: column;
             align-items: center;
+            padding-top: 100px;
         }
 
         /* --- BARRA SUPERIOR (NAVBAR) --- */
@@ -26,10 +29,10 @@
             background: white;
             padding: 15px 30px;
             display: flex;
-            justify-content: space-between; /* Nome na esquerda, Botão na direita */
+            justify-content: space-between;
             align-items: center;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            position: fixed; /* Fixa no topo */
+            position: fixed;
             top: 0;
             left: 0;
             z-index: 1000;
@@ -45,28 +48,62 @@
             text-transform: capitalize;
         }
 
+        .user-welcome h1 {
+            margin-bottom: 0;
+            font-size: 22px;
+        }
+
         /* --- CONTAINER CENTRAL --- */
-       .main-content {
-            margin-top: 100px;
+        .main-content {
+            margin-top: 50px;
+            margin-bottom: 40px;
             width: 90%;
             max-width: 800px;
             display: flex;
             flex-direction: column;
-            gap: 25px;              /* espaço entre os cards */
-         }
+            gap: 30px;
+        }
 
-    /* Um card por estação (o estilo que antes era do .main-content) */
+        /* Um card por estação */
         .card-estacao {
             background: white;
             padding: 40px;
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             text-align: center;
-        } 
+        }
 
         h1 {
             color: #2c5e1a;
             margin-bottom: 20px;
+        }
+
+        /* Banner de status do servidor / bloqueio */
+        .banner {
+            background: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            color: #2c5e1a;
+        }
+
+        /* Estado da tranca dentro do card */
+        .tranca-info {
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        .tranca {
+            font-weight: 600;
+            color: #2c5e1a;
+        }
+
+        /* Aviso quando o sensor está detectando algo */
+        .aviso-sensor {
+            color: #CD5C5C;
+            margin-top: 10px;
+            font-weight: 600;
         }
 
         .btn-sair {
@@ -103,15 +140,10 @@
             transform: scale(1.05);
         }
 
-        .placeholder-area {
-            border: 2px dashed #ccc;
-            padding: 50px;
-            color: #999;
-            margin-top: 20px;
-            border-radius: 10px;
-        }
-        body {
-            padding-top: 100px; 
+        .btn-acao:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
         }
     </style>
 </head>
@@ -122,58 +154,113 @@
             Olá, <strong>{{ usuario.Login }}</strong>
             <h1>Kakatua Bikes WEB</h1>
         </div>
-        
+
         <form action="{% url 'logout' %}" method="post" style="margin: 0;">
             {% csrf_token %}
             <button type="submit" class="btn-sair">sair</button>
         </form>
     </nav>
 
-<main class="main-content">
+    <main class="main-content">
 
-    {% if messages %}
-        {% for message in messages %}
-            <p style="background: white; padding: 12px 20px; border-radius: 10px; text-align: center;">
-                {{ message }}
-            </p>
-        {% endfor %}
-    {% endif %}
+        <!-- Banner de bloqueio (atualizado pelo script no final da página) -->
+        <p id="banner-bloqueio" class="banner">
+            {% if bloqueada is None %}⚠️ Servidor indisponível{% elif bloqueada %}🔒 Estação bloqueada{% else %}🔓 Estação liberada{% endif %}
+        </p>
 
-    {% for estacao in estacoes %}
-        <div class="card-estacao">
-            <h1>{{ estacao.nome }}</h1>
+        {% if messages %}
+            {% for message in messages %}
+                <p style="background: white; padding: 12px 20px; border-radius: 10px; text-align: center;">
+                    {{ message }}
+                </p>
+            {% endfor %}
+        {% endif %}
 
-            <div class="user-info">
-                {% if estacao.livre %}
-                    <h2 style="color: #2c5e1a;">Você pode armazenar sua bike</h2>
-                    <form method="post" action="{% url 'ocupar_estacao' estacao.pk %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn-acao">Armazenar Estação</button>
-                    </form>
+        {% for estacao in estacoes %}
+            <div class="card-estacao">
+                <h1>{{ estacao.nome }}</h1>
 
-                {% elif estacao.ocupada_por == usuario %}
-                    <h2 style="color: #2c5e1a;">Sua bike está armazenada nesta estação</h2>
-                    <p style="color: #555; margin: 10px 0 20px;">
-                        Ocupada desde {{ estacao.ocupada_em|date:"d/m/Y H:i" }}
-                    </p>
-                    <form method="post" action="{% url 'liberar_estacao' estacao.pk %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn-sair">Liberar Estação</button>
-                    </form>
+                <!-- Estado da tranca desta estação (atualizado pelo script) -->
+                <p class="tranca-info">
+                    Tranca:
+                    <span class="tranca" data-id="{{ estacao.pk }}">
+                        {% if estacao.tranca %}{{ estacao.tranca.estado }}{% if estacao.tranca.reservada %} (reservada){% endif %}{% else %}sem dados{% endif %}
+                    </span>
+                </p>
 
-                {% else %}
-                    <h2 style="color: #CD5C5C;">Estação Bloqueada</h2>
-                    <p style="color: #555;">Esta estação está sendo usada por outro usuário.</p>
-                {% endif %}
+                <div class="user-info">
+                    {% if estacao.livre %}
+                        <h2 style="color: #2c5e1a;">Você pode armazenar sua bike</h2>
+                        <form method="post" action="{% url 'ocupar_estacao' estacao.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-acao btn-armazenar" data-id="{{ estacao.pk }}"
+                                    {% if estacao.sensor_bloqueia %}disabled{% endif %}>Armazenar Estação</button>
+                        </form>
+                        <p class="aviso-sensor" data-id="{{ estacao.pk }}"
+                           {% if not estacao.sensor_bloqueia %}hidden{% endif %}>
+                            ⚠️ Sensor detectando algo. Aguarde para armazenar.
+                        </p>
+
+                    {% elif estacao.ocupada_por == usuario %}
+                        <h2 style="color: #2c5e1a;">Sua bike está armazenada nesta estação</h2>
+                        <p style="color: #555; margin: 10px 0 20px;">
+                            Ocupada desde {{ estacao.ocupada_em|date:"d/m/Y H:i" }}
+                        </p>
+                        <form method="post" action="{% url 'liberar_estacao' estacao.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-sair">Liberar Estação</button>
+                        </form>
+
+                    {% else %}
+                        <h2 style="color: #CD5C5C;">Estação Bloqueada</h2>
+                        <p style="color: #555;">Esta estação está sendo usada por outro usuário.</p>
+                    {% endif %}
+                </div>
             </div>
-        </div>
-    {% empty %}
-        <div class="card-estacao">
-            <p>Nenhuma estação cadastrada.</p>
-        </div>
-    {% endfor %}
+        {% empty %}
+            <div class="card-estacao">
+                <p>Nenhuma estação cadastrada.</p>
+            </div>
+        {% endfor %}
 
-</main>
+    </main>
+
+    <script>
+        // Atualiza banner, trancas e botões a cada 5s, sem recarregar a página.
+        // Usa setTimeout recursivo: a próxima consulta só é agendada quando a anterior termina.
+        async function atualizar() {
+            try {
+                const r = await fetch("{% url 'estado_json' %}");
+                if (r.ok) {
+                    const d = await r.json();
+
+                    document.getElementById('banner-bloqueio').textContent =
+                        d.bloqueada === null ? '⚠️ Servidor indisponível'
+                        : d.bloqueada ? '🔒 Estação bloqueada' : '🔓 Estação liberada';
+
+                    document.querySelectorAll('.tranca').forEach(el => {
+                        const t = d.trancas[el.dataset.id];
+                        el.textContent = t
+                            ? t.estado + (t.reservada ? ' (reservada)' : '')
+                            : 'sem dados';
+                    });
+
+                    document.querySelectorAll('.btn-armazenar').forEach(btn => {
+                        btn.disabled = !!d.sensor_bloqueia[btn.dataset.id];
+                    });
+
+                    document.querySelectorAll('.aviso-sensor').forEach(p => {
+                        p.hidden = !d.sensor_bloqueia[p.dataset.id];
+                    });
+                }
+            } catch (e) {
+                console.error('Erro ao atualizar estado:', e);
+            }
+            setTimeout(atualizar, 5000);
+        }
+        setTimeout(atualizar, 5000);
+    </script>
 
 </body>
 </html>
+

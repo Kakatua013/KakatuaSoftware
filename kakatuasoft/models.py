@@ -1,4 +1,5 @@
 
+
 from django.db import models
 
 # Importa funções para criptografar e verificar senhas de forma segura

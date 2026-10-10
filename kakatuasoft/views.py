@@ -1,13 +1,23 @@
+
+
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from .models import Usuario, Estacao
-from .servidor import enviar_acesso, consultar_estacao
+from django.http import JsonResponse
+from .servidor import enviar_acesso, consultar_estacao, consultar_tranca
 from functools import wraps
 from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
 from django.views.decorators.http import require_POST
+
+# pks das estações que já têm sensor (as outras ainda não têm)
+ESTACOES_COM_SENSOR = {1}
+
+# valores do campo "estado" da API que significam "sensor detectando algo"
+# valor que o ESP manda quando o sensor detecta algo
+ESTADOS_DETECTANDO = {'fechada'}
 
 
 def fazer_login(request):
@@ -48,17 +58,67 @@ def login_necessario(view):
 
 
 @login_necessario
+def estado_json(request):
+    return JsonResponse(_estado_servidor(Estacao.objects.all().order_by('id')))
+
+
+@login_necessario
 def page2(request):
-    estacoes = Estacao.objects.all().order_by('id')
+    estacoes = list(Estacao.objects.all().order_by('id'))
+    estado = _estado_servidor(estacoes)
+    for e in estacoes:
+        e.tranca = estado['trancas'].get(e.pk)
+        e.sensor_bloqueia = estado['sensor_bloqueia'][e.pk]
     return render(request, 'page2.html', {
         'usuario': request.usuario,
         'estacoes': estacoes,
+        'bloqueada': estado['bloqueada'],
     })
+
+
+def _sensor_bloqueia(pk, tranca):
+    """True se a estação tem sensor e ele está detectando algo
+    (ou se não deu para verificar)."""
+    if pk not in ESTACOES_COM_SENSOR:
+        return False
+    if tranca is None:
+        return True
+    return str(tranca.get('estado')).strip().lower() in ESTADOS_DETECTANDO
+
+
+def _estado_servidor(estacoes):
+    bloqueada = consultar_estacao()
+    if bloqueada is None:  # servidor indisponível
+        return {
+            'bloqueada': None,
+            'trancas': {},
+            'sensor_bloqueia': {e.pk: _sensor_bloqueia(e.pk, None) for e in estacoes},
+        }
+    trancas = {
+        e.pk: consultar_tranca(e.pk) if e.pk in ESTACOES_COM_SENSOR else None
+        for e in estacoes
+    }
+    return {
+        'bloqueada': bloqueada,
+        'trancas': trancas,
+        'sensor_bloqueia': {e.pk: _sensor_bloqueia(e.pk, trancas[e.pk]) for e in estacoes},
+    }
 
 
 @login_necessario
 @require_POST
 def ocupar_estacao(request, pk):
+    if pk in ESTACOES_COM_SENSOR:
+        tranca = consultar_tranca(pk)
+        if _sensor_bloqueia(pk, tranca):
+            if tranca is None:
+                messages.error(
+                    request, 'Não foi possível verificar o sensor. Tente novamente.')
+            else:
+                messages.error(
+                    request, 'O sensor está detectando algo. Aguarde para armazenar.')
+            return redirect('page2')
+
     with transaction.atomic():
         # trava a linha no banco: evita dois usuários pegarem a mesma estação ao mesmo tempo
         estacao = get_object_or_404(Estacao.objects.select_for_update(), pk=pk)
@@ -67,7 +127,8 @@ def ocupar_estacao(request, pk):
             messages.error(request, 'Esta estação já está ocupada.')
         else:
             if request.usuario.estacoes_ocupadas.exists():
-                messages.error(request, 'Você já está com uma estação ocupada.')
+                messages.error(
+                    request, 'Você já está com uma estação ocupada.')
                 return redirect('page2')
             estacao.ocupada_por = request.usuario
             estacao.ocupada_em = timezone.now()

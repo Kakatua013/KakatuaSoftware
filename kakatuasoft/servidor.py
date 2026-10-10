@@ -1,3 +1,5 @@
+
+
 import requests
 
 SERVIDOR_URL = "https://esp32.chobi.com.br/api/sensor/"
@@ -29,15 +31,22 @@ def enviar_acesso(usuario):
         return False
 
 
-def consultar_estacao():
+def _get(path):
     try:
-        response = requests.get(
-            SERVIDOR_URL + "estacao/",
-            headers=HEADERS,
-            timeout=5
-        )
-        dados = response.json()
-        return dados.get('bloqueada', False)
+        r = requests.get(SERVIDOR_URL + path, headers=HEADERS, timeout=3)
+        r.raise_for_status()
+        return r.json()
     except Exception as e:
-        print(f"Erro ao consultar estacao: {e}")
-        return False
+        print(f"Erro ao consultar {path}: {e}")
+        return None
+
+
+def consultar_estacao():
+    """True = bloqueada, False = liberada, None = servidor indisponível."""
+    dados = _get("estacao/")
+    return None if dados is None else bool(dados.get("bloqueada", False))
+
+
+def consultar_tranca(id_tranca):
+    """dict com estado/reservada/atualizado_em, ou None."""
+    return _get(f"tranca/{id_tranca}/")
