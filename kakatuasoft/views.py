@@ -13,7 +13,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 # pks das estações que já têm sensor (as outras ainda não têm)
-ESTACOES_COM_SENSOR = {1}
+ESTACOES_COM_SENSOR = {1, 2}
 
 # valores do campo "estado" da API que significam "sensor detectando algo"
 # valor que o ESP manda quando o sensor detecta algo

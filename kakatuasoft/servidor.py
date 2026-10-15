@@ -42,7 +42,7 @@ def _get(path):
 
 
 def consultar_estacao():
-    """True = bloqueada, False = liberada, None = servidor indisponível."""
+    """True = OCUPADA, False = LIVRE, None = servidor indisponível."""
     dados = _get("estacao/")
     return None if dados is None else bool(dados.get("bloqueada", False))
 
