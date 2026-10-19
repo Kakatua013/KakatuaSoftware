@@ -50,3 +50,20 @@ def consultar_estacao():
 def consultar_tranca(id_tranca):
     """dict com estado/reservada/atualizado_em, ou None."""
     return _get(f"tranca/{id_tranca}/")
+
+def enviar_comando(id_tranca, comando):
+    """comando: 'fechar' (guardar bike) ou 'abrir' (retirar bike).
+    Retorna True se o servidor aceitou."""
+    try:
+        r = requests.post(
+            SERVIDOR_URL + f"tranca/{id_tranca}/comando/",
+            json={"comando": comando},
+            headers=HEADERS,
+            timeout=5,
+        )
+        r.raise_for_status()
+        print(f"Comando '{comando}' enviado à tranca {id_tranca}: {r.status_code}")
+        return True
+    except Exception as e:
+        print(f"Erro ao enviar comando '{comando}' à tranca {id_tranca}: {e}")
+        return False

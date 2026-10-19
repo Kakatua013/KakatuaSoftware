@@ -4,13 +4,14 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from .models import Usuario, Estacao
 from django.http import JsonResponse
-from .servidor import enviar_acesso, consultar_estacao, consultar_tranca
+from .servidor import enviar_acesso, consultar_estacao, consultar_tranca, enviar_comando
 from functools import wraps
 from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
 from django.views.decorators.http import require_POST
+
 
 # pks das estações que já têm sensor (as outras ainda não têm)
 ESTACOES_COM_SENSOR = {1, 2}
@@ -130,12 +131,19 @@ def ocupar_estacao(request, pk):
                 messages.error(
                     request, 'Você já está com uma estação ocupada.')
                 return redirect('page2')
+
+            # NOVO: manda a tranca fechar (só estações com sensor/solenoide)
+            if pk in ESTACOES_COM_SENSOR and not enviar_comando(pk, 'fechar'):
+                messages.error(
+                    request, 'Não foi possível acionar a tranca. Tente novamente.')
+                return redirect('page2')
+
             estacao.ocupada_por = request.usuario
             estacao.ocupada_em = timezone.now()
             estacao.save()
             messages.success(request, 'Estação ocupada com sucesso.')
     return redirect('page2')
-
+                
 
 @login_necessario
 @require_POST
@@ -147,6 +155,10 @@ def liberar_estacao(request, pk):
         # regra principal: só quem ocupou pode liberar
         if estacao.ocupada_por_id != request.usuario.id:
             messages.error(request, 'Só quem ocupou a estação pode liberá-la.')
+        # NOVO: manda a tranca abrir antes de liberar no banco
+        elif pk in ESTACOES_COM_SENSOR and not enviar_comando(pk, 'abrir'):
+            messages.error(
+                request, 'Não foi possível acionar a tranca. Tente novamente.')
         else:
             estacao.ocupada_por = None
             estacao.ocupada_em = None
