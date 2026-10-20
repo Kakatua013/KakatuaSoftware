@@ -11,6 +11,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
 from django.views.decorators.http import require_POST
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 
 
 # pks das estações que já têm sensor (as outras ainda não têm)
@@ -19,6 +21,8 @@ ESTACOES_COM_SENSOR = {1, 2}
 # valores do campo "estado" da API que significam "sensor detectando algo"
 # valor que o ESP manda quando o sensor detecta algo
 ESTADOS_DETECTANDO = {'fechada'}
+
+DOMINIO_PERMITIDO = 'unisantos.br'
 
 
 def fazer_login(request):
@@ -143,7 +147,7 @@ def ocupar_estacao(request, pk):
             estacao.save()
             messages.success(request, 'Estação ocupada com sucesso.')
     return redirect('page2')
-                
+
 
 @login_necessario
 @require_POST
@@ -170,8 +174,12 @@ def liberar_estacao(request, pk):
 def cadastro(request):
     if request.method == 'POST':
         login_usuario = request.POST.get('Login')
+        email = request.POST.get('Email', '').strip().lower()
         senha = request.POST.get('Senha')
         confirmar_senha = request.POST.get('ConfirmarSenha')
+
+        if not _email_institucional(email):
+            return render(request, 'cadastro.html', {'erro': 'Use seu e-mail institucional @unisantos.br'})
 
         if senha != confirmar_senha:
             return render(request, 'cadastro.html', {'erro': 'As senhas não coincidem'})
@@ -179,7 +187,10 @@ def cadastro(request):
         if Usuario.objects.filter(Login=login_usuario).exists():
             return render(request, 'cadastro.html', {'erro': 'Login já existe'})
 
-        usuario = Usuario(Login=login_usuario)
+        if Usuario.objects.filter(Email=email).exists():
+            return render(request, 'cadastro.html', {'erro': 'Este e-mail já está cadastrado'})
+
+        usuario = Usuario(Login=login_usuario, Email=email)
         usuario.set_senha(senha)
         usuario.save()
 
@@ -190,6 +201,15 @@ def cadastro(request):
         return redirect('page1')
 
     return render(request, 'cadastro.html')
+
+
+def _email_institucional(email):
+    """True se for um e-mail válido do domínio permitido."""
+    try:
+        validate_email(email)
+    except ValidationError:
+        return False
+    return email.rpartition('@')[2] == DOMINIO_PERMITIDO
 
 
 def logout_view(request):

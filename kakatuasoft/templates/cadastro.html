@@ -300,7 +300,7 @@
         <main class="folha">
             <div class="formulario">
                 <h1>Criar conta</h1>
-                <p class="subtitulo">Escolha um usuário e uma senha.</p>
+                <p class="subtitulo">Use seu e-mail @unisantos.br e escolha um usuário e uma senha.</p>
 
                 {% if erro %}
                     <div class="alerta alerta-erro" role="alert">{{ erro }}</div>
@@ -316,6 +316,11 @@
                     <div class="form-group">
                         <label for="login">Usuário</label>
                         <input type="text" name="Login" id="login" placeholder="Escolha um nome de usuário" autocomplete="username" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">E-mail institucional</label>
+                        <input type="email" name="Email" id="email" placeholder="seu.nome@unisantos.br" autocomplete="email" required>
                     </div>
 
                     <div class="form-group">

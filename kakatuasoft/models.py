@@ -8,6 +8,7 @@ from django.contrib.auth.hashers import make_password, check_password
 
 class Usuario(models.Model):
     Login = models.CharField(max_length=50, unique=True)
+    Email = models.EmailField(unique=True, null=True, blank=True)
     Senha = models.CharField(max_length=128)
 
     id_tranca = models.IntegerField(default=0)
