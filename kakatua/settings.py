@@ -12,10 +12,12 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+load_dotenv(BASE_DIR / 'email_verifi.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -26,8 +28,20 @@ SECRET_KEY = 'django-insecure-_+k0nl(vyf21x&bhodknu@24n=v!_iyuo0=5#(1o2e29ircf6$
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1',
+                 '.ngrok-free.app', '.ngrok-free.dev']
+CSRF_TRUSTED_ORIGINS = ['https://*.ngrok-free.app', 'https://*.ngrok-free.dev']
 
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' #verificação pelo terminal
+# usar quando for a verificação de verdade
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_TIMEOUT = 10
+EMAIL_HOST_USER = os.environ.get('EMAIL_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_SENHA_APP')
+DEFAULT_FROM_EMAIL = f'Kakatua Bikes <{EMAIL_HOST_USER}>'
 
 # Application definition
 

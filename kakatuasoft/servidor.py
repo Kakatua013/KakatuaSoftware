@@ -1,9 +1,11 @@
 
 
 import requests
+import os
+from dotenv import load_dotenv
 
 SERVIDOR_URL = "https://esp32.chobi.com.br/api/sensor/"
-API_KEY = "ifpDXyrQY13sJJj8T98dr3FoLvjbtxfpsBAEOJcp1p0="
+API_KEY = os.environ.get('API_KEY')
 HEADERS = {
     "X-API-Key": API_KEY,
     "Content-Type": "application/json",
@@ -51,6 +53,7 @@ def consultar_tranca(id_tranca):
     """dict com estado/reservada/atualizado_em, ou None."""
     return _get(f"tranca/{id_tranca}/")
 
+
 def enviar_comando(id_tranca, comando):
     """comando: 'fechar' (guardar bike) ou 'abrir' (retirar bike).
     Retorna True se o servidor aceitou."""
@@ -62,7 +65,8 @@ def enviar_comando(id_tranca, comando):
             timeout=5,
         )
         r.raise_for_status()
-        print(f"Comando '{comando}' enviado à tranca {id_tranca}: {r.status_code}")
+        print(
+            f"Comando '{comando}' enviado à tranca {id_tranca}: {r.status_code}")
         return True
     except Exception as e:
         print(f"Erro ao enviar comando '{comando}' à tranca {id_tranca}: {e}")

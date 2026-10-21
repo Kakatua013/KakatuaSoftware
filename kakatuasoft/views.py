@@ -5,6 +5,7 @@ from django.contrib import messages
 from .models import Usuario, Estacao
 from django.http import JsonResponse
 from .servidor import enviar_acesso, consultar_estacao, consultar_tranca, enviar_comando
+from django.conf import settings
 from functools import wraps
 from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
@@ -13,7 +14,10 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
-
+from django.core import signing
+from django.core.mail import send_mail
+from django.urls import reverse
+from .limpeza import limpar_nao_confirmados
 
 # pks das estações que já têm sensor (as outras ainda não têm)
 ESTACOES_COM_SENSOR = {1, 2}
@@ -24,6 +28,9 @@ ESTADOS_DETECTANDO = {'fechada'}
 
 DOMINIO_PERMITIDO = 'unisantos.br'
 
+SALT_VERIFICACAO = 'verificar-email'
+VALIDADE_LINK = 60 * 60 * 24   # 24 horas
+
 
 def fazer_login(request):
     if request.method == 'POST':
@@ -33,8 +40,11 @@ def fazer_login(request):
         try:
             usuario = Usuario.objects.get(Login=login_usuario)
             if usuario.check_senha(senha):
+                if usuario.Email and not usuario.email_verificado:
+                    _enviar_verificacao(request, usuario)   # reenvia o link
+                    return render(request, 'page1.html', {
+                        'erro': 'Confirme seu e-mail antes de entrar. Enviamos um novo link para você.'})
                 request.session['usuario_id'] = usuario.id
-                request.session['usuario_login'] = usuario.Login
 
                 enviar_acesso(usuario)  # ← envia login pro servidor
 
@@ -173,6 +183,8 @@ def liberar_estacao(request, pk):
 
 def cadastro(request):
     if request.method == 'POST':
+        limpar_nao_confirmados()
+
         login_usuario = request.POST.get('Login')
         email = request.POST.get('Email', '').strip().lower()
         senha = request.POST.get('Senha')
@@ -196,8 +208,12 @@ def cadastro(request):
 
         enviar_acesso(usuario)  # ← envia cadastro pro servidor
 
-        messages.success(
-            request, 'Cadastro realizado com sucesso! Faça login.')
+        if _enviar_verificacao(request, usuario):
+            messages.success(
+                request, 'Conta criada! Enviamos um link de confirmação para o seu e-mail.')
+        else:
+            messages.error(
+                request, 'Conta criada, mas não foi possível enviar o e-mail. Tente entrar para receber um novo link.')
         return redirect('page1')
 
     return render(request, 'cadastro.html')
@@ -210,6 +226,51 @@ def _email_institucional(email):
     except ValidationError:
         return False
     return email.rpartition('@')[2] == DOMINIO_PERMITIDO
+
+
+def _enviar_verificacao(request, usuario):
+    token = signing.dumps(
+        {'uid': usuario.pk, 'email': usuario.Email}, salt=SALT_VERIFICACAO)
+    link = request.build_absolute_uri(reverse('verificar_email', args=[token]))
+    if settings.DEBUG:   # só aparece em teste
+        print(f'\n>>> LINK DE VERIFICAÇÃO: {link}\n')
+    try:
+        send_mail(
+            subject='Confirme seu e-mail - Kakatua Bikes',
+            message=(f'Olá, {usuario.Login}!\n\n'
+                     f'Confirme seu e-mail para ativar sua conta:\n{link}\n\n'
+                     'O link vale por 24 horas.'),
+            from_email=None,   # usa DEFAULT_FROM_EMAIL
+            recipient_list=[usuario.Email],
+        )
+        return True
+    except Exception as e:
+        print(f'Erro ao enviar e-mail de verificação: {e}')
+        return False
+
+
+def verificar_email(request, token):
+    try:
+        dados = signing.loads(
+            token, salt=SALT_VERIFICACAO, max_age=VALIDADE_LINK)
+    except signing.SignatureExpired:
+        messages.error(
+            request, 'Link expirado. Tente entrar para receber um novo.')
+        return redirect('page1')
+    except signing.BadSignature:
+        messages.error(request, 'Link inválido.')
+        return redirect('page1')
+
+    try:
+        usuario = Usuario.objects.get(pk=dados['uid'], Email=dados['email'])
+    except Usuario.DoesNotExist:
+        messages.error(request, 'Conta não encontrada.')
+        return redirect('page1')
+
+    usuario.email_verificado = True
+    usuario.save()
+    messages.success(request, 'E-mail confirmado! Agora você já pode entrar.')
+    return redirect('page1')
 
 
 def logout_view(request):

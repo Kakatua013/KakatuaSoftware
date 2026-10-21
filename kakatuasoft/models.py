@@ -14,6 +14,8 @@ class Usuario(models.Model):
     id_tranca = models.IntegerField(default=0)
     estado_tranca = models.IntegerField(default=0)
     tranca_reservada = models.IntegerField(default=0)
+    email_verificado = models.BooleanField(default=False)
+    criado_em = models.DateTimeField(auto_now_add=True, null=True)
 
     # Método para definir/alterar a senha do usuário de forma segura
     # Recebe a senha em texto puro (senha_raw) como parâmetro
