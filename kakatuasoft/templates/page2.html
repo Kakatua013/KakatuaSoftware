@@ -567,8 +567,11 @@
                                    {% if not estacao.sensor_bloqueia %}hidden{% endif %}>
                                     Sensor detectando algo. Aguarde para guardar.
                                 </p>
-                                <form method="post" action="{% url 'ocupar_estacao' estacao.pk %}">
+                                <form method="post" action="{% url 'ocupar_estacao' estacao.pk %}" class="form-ocupar">
                                     {% csrf_token %}
+                                    <input type="hidden" name="lat">
+                                    <input type="hidden" name="lon">
+                                    <input type="hidden" name="precisao">
                                     <button type="submit" class="btn-acao btn-armazenar" data-id="{{ estacao.pk }}"
                                             {% if estacao.sensor_bloqueia %}disabled{% endif %}>Guardar bike</button>
                                 </form>
@@ -750,6 +753,32 @@
         }
         setTimeout(atualizar, 5000);
     </script>
+
+    {% if exigir_localizacao %}
+    <script>
+        /* Localização: tenta obter as coordenadas e envia o "Guardar bike".
+           Se não conseguir, envia mesmo assim: quem decide é o servidor, que mostra a mensagem. */
+        document.querySelectorAll('.form-ocupar').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var btn = form.querySelector('button[type=submit]');
+                if (!navigator.geolocation) {
+                    form.submit();
+                    return;
+                }
+                btn.disabled = true;
+                navigator.geolocation.getCurrentPosition(function (pos) {
+                    form.elements.lat.value = pos.coords.latitude;
+                    form.elements.lon.value = pos.coords.longitude;
+                    form.elements.precisao.value = pos.coords.accuracy;
+                    form.submit();
+                }, function () {
+                    form.submit();
+                }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+            });
+        });
+    </script>
+    {% endif %}
 
 </body>
 </html>

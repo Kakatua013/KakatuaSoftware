@@ -18,6 +18,7 @@ from django.core import signing
 from django.core.mail import send_mail
 from django.urls import reverse
 from .limpeza import limpar_nao_confirmados
+import math
 
 # pks das estações que já têm sensor (as outras ainda não têm)
 ESTACOES_COM_SENSOR = {1, 2}
@@ -30,6 +31,12 @@ DOMINIO_PERMITIDO = 'unisantos.br'
 
 SALT_VERIFICACAO = 'verificar-email'
 VALIDADE_LINK = 60 * 60 * 24   # 24 horas
+
+TIMEOUT_REOCUPAR = 60
+
+RAIO_PERMITIDO_M = 100        # distância máxima até a estação
+PRECISAO_MAXIMA_M = 150       # recusa localização muito imprecisa
+EXIGIR_LOCALIZACAO = True     # False para testar fora do local
 
 
 def fazer_login(request):
@@ -88,6 +95,7 @@ def page2(request):
         'usuario': request.usuario,
         'estacoes': estacoes,
         'bloqueada': estado['bloqueada'],
+        'exigir_localizacao': EXIGIR_LOCALIZACAO,
     })
 
 
@@ -120,9 +128,40 @@ def _estado_servidor(estacoes):
     }
 
 
+def _distancia_m(lat1, lon1, lat2, lon2):
+    R = 6371000
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    a = (math.sin((p2 - p1) / 2) ** 2
+         + math.cos(p1) * math.cos(p2) * math.sin(math.radians(lon2 - lon1) / 2) ** 2)
+    return 2 * R * math.asin(math.sqrt(a))
+
+
+def _perto_da_estacao(request, estacao):
+    """Retorna (ok, mensagem)."""
+    if not EXIGIR_LOCALIZACAO or estacao.latitude is None or estacao.longitude is None:
+        return True, ''   # estação sem coordenadas não exige localização
+    try:
+        lat = float(request.POST['lat'])
+        lon = float(request.POST['lon'])
+        precisao = float(request.POST.get('precisao', 0))
+    except (KeyError, ValueError):
+        return False, 'Não foi possível obter sua localização. Permita o acesso e tente de novo.'
+    if precisao > PRECISAO_MAXIMA_M:
+        return False, 'Localização imprecisa. Ative o GPS e tente de novo.'
+    dist = _distancia_m(lat, lon, estacao.latitude, estacao.longitude)
+    if dist > RAIO_PERMITIDO_M:
+        return False, f'Você precisa estar perto da estação (distância: {int(dist)} m).'
+    return True, ''
+
+
 @login_necessario
 @require_POST
 def ocupar_estacao(request, pk):
+    restante = _segundos_restantes(request.usuario)
+    if restante > 0:
+        messages.error(
+            request, f'Aguarde {restante} s para guardar a bike novamente.')
+        return redirect('page2')
     if pk in ESTACOES_COM_SENSOR:
         tranca = consultar_tranca(pk)
         if _sensor_bloqueia(pk, tranca):
@@ -144,6 +183,9 @@ def ocupar_estacao(request, pk):
             if request.usuario.estacoes_ocupadas.exists():
                 messages.error(
                     request, 'Você já está com uma estação ocupada.')
+            ok, aviso = _perto_da_estacao(request, estacao)
+            if not ok:
+                messages.error(request, aviso)
                 return redirect('page2')
 
             # NOVO: manda a tranca fechar (só estações com sensor/solenoide)
@@ -163,7 +205,7 @@ def ocupar_estacao(request, pk):
 @require_POST
 def liberar_estacao(request, pk):
     with transaction.atomic():
-        Usuario.objects.select_for_update().get(pk=request.usuario.pk)
+        usuario = Usuario.objects.select_for_update().get(pk=request.usuario.pk)
         estacao = get_object_or_404(Estacao.objects.select_for_update(), pk=pk)
 
         # regra principal: só quem ocupou pode liberar
@@ -177,8 +219,17 @@ def liberar_estacao(request, pk):
             estacao.ocupada_por = None
             estacao.ocupada_em = None
             estacao.save()
+            usuario.ultima_liberacao = timezone.now()
+            usuario.save(update_fields=['ultima_liberacao'])
             messages.success(request, 'Estação liberada.')
     return redirect('page2')
+
+
+def _segundos_restantes(usuario):
+    if not usuario.ultima_liberacao:
+        return 0
+    passou = (timezone.now() - usuario.ultima_liberacao).total_seconds()
+    return max(0, math.ceil(TIMEOUT_REOCUPAR - passou))
 
 
 def cadastro(request):

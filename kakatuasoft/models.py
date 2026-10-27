@@ -16,6 +16,7 @@ class Usuario(models.Model):
     tranca_reservada = models.IntegerField(default=0)
     email_verificado = models.BooleanField(default=False)
     criado_em = models.DateTimeField(auto_now_add=True, null=True)
+    ultima_liberacao = models.DateTimeField(null=True, blank=True)
 
     # Método para definir/alterar a senha do usuário de forma segura
     # Recebe a senha em texto puro (senha_raw) como parâmetro
@@ -53,6 +54,8 @@ class Usuario(models.Model):
 
 class Estacao(models.Model):
     nome = models.CharField(max_length=50)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
     # None = livre | preenchido = ocupada por esse usuário
     ocupada_por = models.ForeignKey(
         Usuario,
