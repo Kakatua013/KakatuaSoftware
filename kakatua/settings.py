@@ -12,36 +12,46 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 import os
 from pathlib import Path
-from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-load_dotenv(BASE_DIR / 'email_verifi.env')
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-_+k0nl(vyf21x&bhodknu@24n=v!_iyuo0=5#(1o2e29ircf6$'
+# Em produção, defina as variáveis de ambiente no painel da hospedagem:
+#   DEBUG=False, SECRET_KEY, ALLOWED_HOSTS (domínios separados por vírgula),
+#   CSRF_ORIGINS (ex.: https://meusite.com), API_KEY, EMAIL_USER, EMAIL_SENHA_APP
+# Localmente, sem nada definido, roda em modo de desenvolvimento.
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = 'django-insecure-somente-para-desenvolvimento'
+    else:
+        raise RuntimeError('Defina a variável de ambiente SECRET_KEY.')
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1',
-                 '.ngrok-free.app', '.ngrok-free.dev']
-CSRF_TRUSTED_ORIGINS = ['https://*.ngrok-free.app', 'https://*.ngrok-free.dev']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1'] + [
+    h.strip() for h in os.environ.get('ALLOWED_HOSTS', '').split(',') if h.strip()]
+CSRF_TRUSTED_ORIGINS = [
+    o.strip() for o in os.environ.get('CSRF_ORIGINS', '').split(',') if o.strip()]
 
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' #verificação pelo terminal
-# usar quando for a verificação de verdade
+# Se o site roda atrás de um proxy (nginx, Apache etc.) que repassa o cabeçalho
+# X-Forwarded-Proto, o Django passa a saber que o acesso é https.
+# Se não houver proxy, apague esta linha.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# Cookies só por https quando fora do modo de desenvolvimento
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+
+# E-mail e senha de app do Gmail ficam no /admin (Configuração), não aqui.
+# Para ver o e-mail só no terminal (teste): troque pelo backend console.EmailBackend
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_TIMEOUT = 10
-EMAIL_HOST_USER = os.environ.get('EMAIL_USER')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_SENHA_APP')
-DEFAULT_FROM_EMAIL = f'Kakatua Bikes <{EMAIL_HOST_USER}>'
 
 # Application definition
 
@@ -145,6 +155,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+# destino do collectstatic (necessário p/ o /admin em produção)
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 LOGIN_URL = 'page1'  # Página para redirecionar quando não logado
 

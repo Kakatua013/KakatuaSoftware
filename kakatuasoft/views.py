@@ -1,8 +1,7 @@
-
-
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from .models import Usuario, Estacao
+from .config import obter
 from django.http import JsonResponse
 from .servidor import enviar_acesso, consultar_estacao, consultar_tranca, enviar_comando
 from django.conf import settings
@@ -183,6 +182,7 @@ def ocupar_estacao(request, pk):
             if request.usuario.estacoes_ocupadas.exists():
                 messages.error(
                     request, 'Você já está com uma estação ocupada.')
+                return redirect('page2')
             ok, aviso = _perto_da_estacao(request, estacao)
             if not ok:
                 messages.error(request, aviso)
@@ -286,13 +286,18 @@ def _enviar_verificacao(request, usuario):
     if settings.DEBUG:   # só aparece em teste
         print(f'\n>>> LINK DE VERIFICAÇÃO: {link}\n')
     try:
+        # e-mail e senha de app: variáveis de ambiente ou, se não houver, o /admin
+        email_usuario = obter('EMAIL_USER', 'email_usuario')
+        senha_app = obter('EMAIL_SENHA_APP', 'email_senha_app')
         send_mail(
             subject='Confirme seu e-mail - Kakatua Bikes',
             message=(f'Olá, {usuario.Login}!\n\n'
                      f'Confirme seu e-mail para ativar sua conta:\n{link}\n\n'
                      'O link vale por 24 horas.'),
-            from_email=None,   # usa DEFAULT_FROM_EMAIL
+            from_email=f'Kakatua Bikes <{email_usuario}>',
             recipient_list=[usuario.Email],
+            auth_user=email_usuario,
+            auth_password=senha_app,
         )
         return True
     except Exception as e:

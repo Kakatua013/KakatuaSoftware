@@ -1,5 +1,3 @@
-
-
 from django.db import models
 
 # Importa funções para criptografar e verificar senhas de forma segura
@@ -71,3 +69,28 @@ class Estacao(models.Model):
 
     def __str__(self):
         return self.nome
+
+
+class Configuracao(models.Model):
+    """Configurações editáveis pelo /admin (existe uma única linha)."""
+    email_usuario = models.EmailField('E-mail de envio (Gmail)', blank=True)
+    email_senha_app = models.CharField(
+        'Senha de app do Gmail', max_length=64, blank=True)
+    api_key = models.CharField(
+        'API key do servidor', max_length=128, blank=True)
+
+    class Meta:
+        verbose_name = 'Configuração'
+        verbose_name_plural = 'Configuração'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1   # sempre uma única linha
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def atual(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    def __str__(self):
+        return 'Configuração do sistema'

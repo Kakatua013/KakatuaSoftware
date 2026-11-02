@@ -1,15 +1,15 @@
-
-
 import requests
-import os
-from dotenv import load_dotenv
 
 SERVIDOR_URL = "https://esp32.chobi.com.br/api/sensor/"
-API_KEY = os.environ.get('API_KEY')
-HEADERS = {
-    "X-API-Key": API_KEY,
-    "Content-Type": "application/json",
-}
+
+
+def _headers():
+    # API key: variável de ambiente API_KEY ou, se não houver, o valor do /admin
+    from .config import obter
+    return {
+        "X-API-Key": obter('API_KEY', 'api_key'),
+        "Content-Type": "application/json",
+    }
 
 
 def enviar_acesso(usuario):
@@ -23,7 +23,7 @@ def enviar_acesso(usuario):
                 "estado_tranca": str(usuario.estado_tranca),
                 "tranca_reservada": bool(usuario.tranca_reservada),
             },
-            headers=HEADERS,
+            headers=_headers(),
             timeout=5
         )
         print(f"Servidor acesso: {response.status_code} - {response.json()}")
@@ -35,7 +35,7 @@ def enviar_acesso(usuario):
 
 def _get(path):
     try:
-        r = requests.get(SERVIDOR_URL + path, headers=HEADERS, timeout=3)
+        r = requests.get(SERVIDOR_URL + path, headers=_headers(), timeout=3)
         r.raise_for_status()
         return r.json()
     except Exception as e:
@@ -61,7 +61,7 @@ def enviar_comando(id_tranca, comando):
         r = requests.post(
             SERVIDOR_URL + f"tranca/{id_tranca}/comando/",
             json={"comando": comando},
-            headers=HEADERS,
+            headers=_headers(),
             timeout=5,
         )
         r.raise_for_status()
