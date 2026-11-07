@@ -561,6 +561,85 @@
         }
         html[data-tema="escuro"] .card-tag { background: #17231c; box-shadow: 0 6px 18px -8px rgba(0, 0, 0, 0.7); }
         html[data-tema="escuro"] .tag-info strong { color: #bff0d4; }
+
+        /* ---------- Modo "cadastro de tag" ---------- */
+        .card-tag { display: none; }
+        .btn-voltar { display: none; }
+        .txt-tag { display: none; }
+
+        body.modo-tag .card-tag { display: flex; }
+        body.modo-tag .btn-voltar { display: inline-flex; }
+        body.modo-tag .carrossel { display: none; }
+
+        body.modo-tag .txt-normal,
+        body.modo-tag .txt-foco { display: none !important; }
+        body.modo-tag h1 .txt-tag { display: inline; }
+        body.modo-tag p.txt-tag { display: block; }
+
+        .btn-voltar {
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 14px;
+            padding: 10px 16px;
+            border: 0;
+            border-radius: 999px;
+            background: #fff;
+            color: var(--g-800);
+            font: inherit;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 6px 18px -8px rgba(6, 74, 41, 0.35);
+        }
+        .btn-voltar:focus-visible { outline: 3px solid var(--g-500); outline-offset: 2px; }
+        html[data-tema="escuro"] .btn-voltar { background: #17231c; color: #bff0d4; box-shadow: 0 6px 18px -8px rgba(0, 0, 0, 0.7); }
+
+        /* ---------- Botão da tag no topo (ícone + texto) ---------- */
+        .btn-tag-topo {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            height: 40px;
+            padding: 0 16px 0 12px;
+            border: 2px solid rgba(255, 255, 255, 0.55);
+            border-radius: 999px;
+            background: transparent;
+            color: #fff;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 800;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .btn-tag-topo:hover { background: rgba(255, 255, 255, 0.16); }
+        .btn-tag-topo:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+        .rotulo-curto { display: none; }
+
+        .ponto-aviso {
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--sol);
+            box-shadow: 0 0 0 2px var(--g-800);
+            animation: pulsar 1.8s ease-in-out infinite;
+        }
+        @keyframes pulsar {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+        @media (prefers-reduced-motion: reduce) { .ponto-aviso { animation: none; } }
+
+        /* Celular estreito: texto curto, e o avatar sai para caber tudo no topo */
+        @media (max-width: 480px) {
+            .rotulo-longo { display: none; }
+            .rotulo-curto { display: inline; }
+            .btn-tag-topo { padding: 0 12px 0 10px; gap: 6px; }
+            .avatar { display: none; }
+        }
 </style>
 </head>
 <body>
@@ -579,6 +658,13 @@
                 <div class="avatar" aria-hidden="true">{{ usuario.Login|first|upper }}</div>
                 <span class="nome nome-completo">{{ usuario.Login }}</span>
 
+                <button type="button" class="btn-tag-topo" id="btnTag" aria-label="{% if tem_tag %}Minha tag de acesso{% else %}Cadastrar tag de acesso{% endif %}" title="Tag de acesso">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12a7 7 0 0 1 7-7"/><path d="M5 17a12 12 0 0 1 12-12"/><path d="M5 7a2 2 0 0 1 2-2"/><rect x="9" y="11" width="11" height="9" rx="2.5"/></svg>
+                    <span class="rotulo-longo">{% if tem_tag %}Minha tag{% else %}Cadastrar tag{% endif %}</span>
+                    <span class="rotulo-curto">Tag</span>
+                    {% if not tem_tag %}<span class="ponto-aviso" aria-hidden="true"></span>{% endif %}
+                </button>
+
                 <button type="button" class="btn-tema" id="btnTema" aria-label="Alternar modo escuro" title="Modo claro/escuro"><svg class="i-lua" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg class="i-sol" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
 
                 <form action="{% url 'logout' %}" method="post" style="margin: 0;">
@@ -592,9 +678,11 @@
             <h1>
                 <span class="txt-normal">Escolha sua estação</span>
                 <span class="txt-foco">Sua estação</span>
+                <span class="txt-tag">Tag de acesso</span>
             </h1>
             <p class="txt-normal">Toque na estação livre para guardar sua bike.</p>
             <p class="txt-foco">Acompanhe sua bike e libere a estação quando for retirá-la.</p>
+            <p class="txt-tag">Cadastre a tag para guardar e liberar sua bike pelo leitor.</p>
         </div>
     </header>
 
@@ -611,6 +699,8 @@
                     <p class="alerta-msg" role="status">{{ message }}</p>
                 {% endfor %}
             {% endif %}
+
+            <button type="button" class="btn-voltar" id="btn-voltar-tag">← Voltar às estações</button>
 
             <section class="card-tag" id="card-tag" aria-label="Tag de acesso">
                 <div class="tag-info">
@@ -936,6 +1026,10 @@
                     if (String(d.cadastrada_em) !== inicial) {
                         st.textContent = 'Tag cadastrada: guarde ou libere aproximando-a do leitor';
                         btn.textContent = 'Trocar tag';
+                        var topoLongo = document.querySelector('#btnTag .rotulo-longo');
+                        var topoPonto = document.querySelector('#btnTag .ponto-aviso');
+                        if (topoLongo) topoLongo.textContent = 'Minha tag';
+                        if (topoPonto) topoPonto.remove();
                     } else if (d.tem_tag) {
                         st.textContent = 'Tempo esgotado. Sua tag atual continua valendo.';
                     } else {
@@ -943,6 +1037,37 @@
                     }
                 } catch (e) {}
             }, 2000);
+        })();
+    </script>
+    <script>
+        /* Modo cadastro de tag: o ícone troca o conteúdo da página, o botão voltar restaura */
+        (function () {
+            var btnTag = document.getElementById('btnTag');
+            var btnVoltar = document.getElementById('btn-voltar-tag');
+            var corpo = document.body;
+            var st = document.getElementById('tag-status');
+
+            function abrir() { corpo.classList.add('modo-tag'); window.scrollTo(0, 0); }
+            function fechar() {
+                corpo.classList.remove('modo-tag');
+                window.dispatchEvent(new Event('resize'));   // o carrossel recalcula
+                window.scrollTo(0, 0);
+            }
+
+            btnTag.addEventListener('click', function () {
+                corpo.classList.contains('modo-tag') ? fechar() : abrir();
+            });
+            btnVoltar.addEventListener('click', fechar);
+
+            // ao enviar o cadastro a página recarrega: lembra de reabrir no modo tag
+            var form = document.querySelector('.form-tag');
+            if (form) form.addEventListener('submit', function () {
+                try { sessionStorage.setItem('abrirTag', '1'); } catch (e) {}
+            });
+
+            var reabrir = false;
+            try { reabrir = sessionStorage.getItem('abrirTag') === '1'; sessionStorage.removeItem('abrirTag'); } catch (e) {}
+            if (reabrir || (st && Number(st.dataset.aguardando) > 0)) abrir();
         })();
     </script>
 </body>

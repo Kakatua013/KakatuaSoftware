@@ -32,7 +32,7 @@ if not SECRET_KEY:
     else:
         raise RuntimeError('Defina a variável de ambiente SECRET_KEY.')
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1'] + [
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'kakatua.chobi.com.br'] + [
     h.strip() for h in os.environ.get('ALLOWED_HOSTS', '').split(',') if h.strip()]
 CSRF_TRUSTED_ORIGINS = [
     o.strip() for o in os.environ.get('CSRF_ORIGINS', '').split(',') if o.strip()]
