@@ -1,5 +1,3 @@
-
-
 """
 URL configuration for kakatua project.
 
@@ -33,5 +31,8 @@ urlpatterns = [
     path('estacao/<int:pk>/liberar/',
          views.liberar_estacao, name='liberar_estacao'),
     path('estado/', views.estado_json, name='estado_json'),
+    path('tag/cadastrar/', views.cadastrar_tag, name='cadastrar_tag'),
+    path('tag/status/', views.tag_status, name='tag_status'),
+    path('api/tag/', views.tag_lida, name='tag_lida'),
     path('', views.fazer_login),
 ]

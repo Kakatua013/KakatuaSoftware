@@ -15,6 +15,12 @@ class Usuario(models.Model):
     email_verificado = models.BooleanField(default=False)
     criado_em = models.DateTimeField(auto_now_add=True, null=True)
     ultima_liberacao = models.DateTimeField(null=True, blank=True)
+    # Tag RFID/NFC (no máximo 1 por login). O UID é único no sistema.
+    tag_uid = models.CharField(
+        max_length=32, unique=True, null=True, blank=True)
+    tag_cadastrada_em = models.DateTimeField(null=True, blank=True)
+    # enquanto estiver no futuro, a próxima tag lida no leitor é cadastrada neste usuário
+    cadastrando_tag_ate = models.DateTimeField(null=True, blank=True)
 
     # Método para definir/alterar a senha do usuário de forma segura
     # Recebe a senha em texto puro (senha_raw) como parâmetro

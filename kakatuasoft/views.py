@@ -18,6 +18,11 @@ from django.core.mail import send_mail
 from django.urls import reverse
 from .limpeza import limpar_nao_confirmados
 import math
+import json
+import re
+import hmac
+from datetime import timedelta
+from django.views.decorators.csrf import csrf_exempt
 
 # pks das estações que já têm sensor (as outras ainda não têm)
 ESTACOES_COM_SENSOR = {1, 2}
@@ -31,9 +36,11 @@ DOMINIO_PERMITIDO = 'unisantos.br'
 SALT_VERIFICACAO = 'verificar-email'
 VALIDADE_LINK = 60 * 60 * 24   # 24 horas
 
-TIMEOUT_REOCUPAR = 60
+TIMEOUT_REOCUPAR = 10
 
-RAIO_PERMITIDO_M = 100        # distância máxima até a estação
+JANELA_CADASTRO_TAG = 60     # segundos para o usuário aproximar a tag do leitor
+
+RAIO_PERMITIDO_M = 200       # distância máxima até a estação
 PRECISAO_MAXIMA_M = 150       # recusa localização muito imprecisa
 EXIGIR_LOCALIZACAO = True     # False para testar fora do local
 
@@ -80,7 +87,17 @@ def login_necessario(view):
 
 @login_necessario
 def estado_json(request):
-    return JsonResponse(_estado_servidor(Estacao.objects.all().order_by('id')))
+    estacoes = list(Estacao.objects.all().order_by('id'))
+    dados = _estado_servidor(estacoes)
+    dados['situacoes'] = {e.pk: _situacao(
+        e, request.usuario) for e in estacoes}
+    return JsonResponse(dados)
+
+
+def _situacao(estacao, usuario):
+    if estacao.livre:
+        return 'livre'
+    return 'sua' if estacao.ocupada_por_id == usuario.pk else 'ocupada'
 
 
 @login_necessario
@@ -95,6 +112,8 @@ def page2(request):
         'estacoes': estacoes,
         'bloqueada': estado['bloqueada'],
         'exigir_localizacao': EXIGIR_LOCALIZACAO,
+        'tem_tag': bool(request.usuario.tag_uid),
+        'tag_aguardando': _segundos_cadastro_tag(request.usuario),
     })
 
 
@@ -153,75 +172,82 @@ def _perto_da_estacao(request, estacao):
     return True, ''
 
 
-@login_necessario
-@require_POST
-def ocupar_estacao(request, pk):
-    restante = _segundos_restantes(request.usuario)
+def _ocupar(usuario, pk):
+    """Regras de 'guardar a bike' (a checagem de localização é feita antes, nas telas
+    que têm GPS). Usada pelo site e pelo leitor de tag. Retorna (ok, mensagem)."""
+    restante = _segundos_restantes(usuario)
     if restante > 0:
-        messages.error(
-            request, f'Aguarde {restante} s para guardar a bike novamente.')
-        return redirect('page2')
+        return False, f'Aguarde {restante} s para guardar a bike novamente.'
     if pk in ESTACOES_COM_SENSOR:
         tranca = consultar_tranca(pk)
         if _sensor_bloqueia(pk, tranca):
             if tranca is None:
-                messages.error(
-                    request, 'Não foi possível verificar o sensor. Tente novamente.')
-            else:
-                messages.error(
-                    request, 'O sensor está detectando algo. Aguarde para armazenar.')
-            return redirect('page2')
+                return False, 'Não foi possível verificar o sensor. Tente novamente.'
+            return False, 'O sensor está detectando algo. Aguarde para armazenar.'
 
     with transaction.atomic():
         # trava a linha no banco: evita dois usuários pegarem a mesma estação ao mesmo tempo
-        estacao = get_object_or_404(Estacao.objects.select_for_update(), pk=pk)
-
+        estacao = Estacao.objects.select_for_update().filter(pk=pk).first()
+        if estacao is None:
+            return False, 'Estação não encontrada.'
         if not estacao.livre:
-            messages.error(request, 'Esta estação já está ocupada.')
-        else:
-            if request.usuario.estacoes_ocupadas.exists():
-                messages.error(
-                    request, 'Você já está com uma estação ocupada.')
-                return redirect('page2')
-            ok, aviso = _perto_da_estacao(request, estacao)
-            if not ok:
-                messages.error(request, aviso)
-                return redirect('page2')
+            return False, 'Esta estação já está ocupada.'
+        if usuario.estacoes_ocupadas.exists():
+            return False, 'Você já está com uma estação ocupada.'
+        # manda a tranca fechar (só estações com sensor/solenoide)
+        if pk in ESTACOES_COM_SENSOR and not enviar_comando(pk, 'fechar'):
+            return False, 'Não foi possível acionar a tranca. Tente novamente.'
+        estacao.ocupada_por = usuario
+        estacao.ocupada_em = timezone.now()
+        estacao.save()
+    return True, 'Estação ocupada com sucesso.'
 
-            # NOVO: manda a tranca fechar (só estações com sensor/solenoide)
-            if pk in ESTACOES_COM_SENSOR and not enviar_comando(pk, 'fechar'):
-                messages.error(
-                    request, 'Não foi possível acionar a tranca. Tente novamente.')
-                return redirect('page2')
 
-            estacao.ocupada_por = request.usuario
-            estacao.ocupada_em = timezone.now()
-            estacao.save()
-            messages.success(request, 'Estação ocupada com sucesso.')
+def _liberar(usuario, pk):
+    """Regras de 'liberar a estação' (retirar a bike). Retorna (ok, mensagem)."""
+    with transaction.atomic():
+        dono = Usuario.objects.select_for_update().get(pk=usuario.pk)
+        estacao = Estacao.objects.select_for_update().filter(pk=pk).first()
+        if estacao is None:
+            return False, 'Estação não encontrada.'
+        # regra principal: só quem ocupou pode liberar
+        if estacao.ocupada_por_id != dono.pk:
+            return False, 'Só quem ocupou a estação pode liberá-la.'
+        # manda a tranca abrir antes de liberar no banco
+        if pk in ESTACOES_COM_SENSOR and not enviar_comando(pk, 'abrir'):
+            return False, 'Não foi possível acionar a tranca. Tente novamente.'
+        estacao.ocupada_por = None
+        estacao.ocupada_em = None
+        estacao.save()
+        dono.ultima_liberacao = timezone.now()
+        dono.save(update_fields=['ultima_liberacao'])
+    return True, 'Estação liberada.'
+
+
+@login_necessario
+@require_POST
+def ocupar_estacao(request, pk):
+    estacao = get_object_or_404(Estacao, pk=pk)
+    ok, aviso = _perto_da_estacao(request, estacao)
+    if not ok:
+        messages.error(request, aviso)
+        return redirect('page2')
+    ok, texto = _ocupar(request.usuario, pk)
+    if ok:
+        messages.success(request, texto)
+    else:
+        messages.error(request, texto)
     return redirect('page2')
 
 
 @login_necessario
 @require_POST
 def liberar_estacao(request, pk):
-    with transaction.atomic():
-        usuario = Usuario.objects.select_for_update().get(pk=request.usuario.pk)
-        estacao = get_object_or_404(Estacao.objects.select_for_update(), pk=pk)
-
-        # regra principal: só quem ocupou pode liberar
-        if estacao.ocupada_por_id != request.usuario.id:
-            messages.error(request, 'Só quem ocupou a estação pode liberá-la.')
-        # NOVO: manda a tranca abrir antes de liberar no banco
-        elif pk in ESTACOES_COM_SENSOR and not enviar_comando(pk, 'abrir'):
-            messages.error(
-                request, 'Não foi possível acionar a tranca. Tente novamente.')
-        else:
-            estacao.ocupada_por = None
-            estacao.ocupada_em = None
-            estacao.save()
-            usuario.ultima_liberacao = timezone.now()
-            usuario.save(update_fields=['ultima_liberacao'])
-            messages.success(request, 'Estação liberada.')
+    ok, texto = _liberar(request.usuario, pk)
+    if ok:
+        messages.success(request, texto)
+    else:
+        messages.error(request, texto)
     return redirect('page2')
 
 
@@ -332,3 +358,126 @@ def verificar_email(request, token):
 def logout_view(request):
     request.session.flush()
     return redirect('page1')
+
+
+# ───────────────────────── Tag RFID/NFC ─────────────────────────
+
+def _segundos_cadastro_tag(usuario):
+    """Segundos que ainda restam para o usuário aproximar a tag do leitor (0 = não está cadastrando)."""
+    if not usuario.cadastrando_tag_ate:
+        return 0
+    return max(0, math.ceil((usuario.cadastrando_tag_ate - timezone.now()).total_seconds()))
+
+
+def _estado_tag(usuario):
+    return {
+        'tem_tag': bool(usuario.tag_uid),
+        'aguardando': _segundos_cadastro_tag(usuario),
+        'cadastrada_em': int(usuario.tag_cadastrada_em.timestamp()) if usuario.tag_cadastrada_em else 0,
+    }
+
+
+def _perto_de_alguma_estacao(request):
+    """O leitor fica nas estações: exige estar perto de ao menos uma que tenha coordenadas."""
+    com_coordenadas = [e for e in Estacao.objects.all()
+                       if e.latitude is not None and e.longitude is not None]
+    if not EXIGIR_LOCALIZACAO or not com_coordenadas:
+        return True, ''
+    aviso = ''
+    for e in com_coordenadas:
+        ok, aviso = _perto_da_estacao(request, e)
+        if ok:
+            return True, ''
+    return False, aviso
+
+
+@login_necessario
+@require_POST
+def cadastrar_tag(request):
+    """Abre a janela em que a próxima tag lida no leitor vira a tag deste usuário."""
+    ok, aviso = _perto_de_alguma_estacao(request)
+    if not ok:
+        messages.error(request, aviso)
+        return redirect('page2')
+
+    agora = timezone.now()
+    outro = Usuario.objects.filter(
+        cadastrando_tag_ate__gt=agora).exclude(pk=request.usuario.pk).exists()
+    if outro:
+        messages.error(
+            request, 'Outra pessoa está cadastrando uma tag agora. Tente de novo em instantes.')
+        return redirect('page2')
+
+    request.usuario.cadastrando_tag_ate = agora + \
+        timedelta(seconds=JANELA_CADASTRO_TAG)
+    request.usuario.save(update_fields=['cadastrando_tag_ate'])
+    messages.success(
+        request, f'Aproxime a tag do leitor da estação em até {JANELA_CADASTRO_TAG} s.')
+    return redirect('page2')
+
+
+@login_necessario
+def tag_status(request):
+    return JsonResponse(_estado_tag(request.usuario))
+
+
+def _processar_tag(uid, id_tranca):
+    """Decide o que fazer com uma tag lida no leitor. Retorna (resultado, mensagem)."""
+    agora = timezone.now()
+
+    # 1) alguém está cadastrando uma tag? Então esta leitura é o cadastro dele.
+    pendente = Usuario.objects.filter(
+        cadastrando_tag_ate__gt=agora).order_by('cadastrando_tag_ate').first()
+    if pendente:
+        if Usuario.objects.filter(tag_uid=uid).exclude(pk=pendente.pk).exists():
+            return 'recusada', 'Esta tag ja esta cadastrada em outra conta.'
+        pendente.tag_uid = uid
+        pendente.tag_cadastrada_em = agora
+        pendente.cadastrando_tag_ate = None
+        pendente.save(
+            update_fields=['tag_uid', 'tag_cadastrada_em', 'cadastrando_tag_ate'])
+        return 'cadastrada', f'Tag cadastrada para {pendente.Login}.'
+
+    # 2) uso normal: guarda ou libera a estação do dono da tag
+    usuario = Usuario.objects.filter(tag_uid=uid).first()
+    if usuario is None:
+        return 'desconhecida', 'Tag nao cadastrada.'
+
+    ocupada = usuario.estacoes_ocupadas.first()
+    if ocupada:
+        # a tag libera a estação que o usuário já está usando
+        if id_tranca and ocupada.pk != id_tranca:
+            return 'recusada', f'Sua bike esta na estacao {ocupada.pk}.'
+        ok, texto = _liberar(usuario, ocupada.pk)
+        return ('liberada' if ok else 'recusada'), texto
+
+    # sem estação ocupada: a tag guarda a bike. Leitor único (id 0): tenta as estações com sensor em ordem.
+    candidatas = [id_tranca] if id_tranca else sorted(ESTACOES_COM_SENSOR)
+    texto = 'Nenhuma estacao disponivel.'
+    for pk in candidatas:
+        ok, texto = _ocupar(usuario, pk)
+        if ok:
+            return 'guardada', texto
+    return 'recusada', texto
+
+
+@csrf_exempt
+@require_POST
+def tag_lida(request):
+    """Chamado pelo ESP32 quando o leitor lê uma tag. Protegido pela mesma API key do ESP."""
+    chave = obter('API_KEY', 'api_key')
+    enviada = request.headers.get('X-API-Key', '')
+    if not chave or not hmac.compare_digest(enviada.encode(), chave.encode()):
+        return JsonResponse({'resultado': 'nao_autorizado', 'mensagem': 'API key invalida.'}, status=401)
+    try:
+        dados = json.loads(request.body)
+        uid = str(dados['uid']).strip().upper()
+        id_tranca = int(dados.get('id_tranca') or 0)
+    except (ValueError, KeyError, TypeError):
+        return JsonResponse({'resultado': 'invalido', 'mensagem': 'Requisicao invalida.'}, status=400)
+    if not re.fullmatch(r'[0-9A-F]{4,20}', uid):
+        return JsonResponse({'resultado': 'invalido', 'mensagem': 'UID invalido.'}, status=400)
+
+    resultado, mensagem = _processar_tag(uid, id_tranca)
+    print(f'[TAG] {uid} -> {resultado}: {mensagem}')
+    return JsonResponse({'resultado': resultado, 'mensagem': mensagem})
