@@ -3,7 +3,7 @@ from django.contrib import messages
 from .models import Usuario, Estacao
 from .config import obter
 from django.http import JsonResponse
-from .servidor import enviar_acesso, consultar_estacao, consultar_tranca, enviar_comando
+from .servidor import enviar_acesso, consultar_tudo, consultar_tranca, enviar_comando
 from django.conf import settings
 from functools import wraps
 from django.db import transaction
@@ -42,7 +42,7 @@ JANELA_CADASTRO_TAG = 60     # segundos para o usuário aproximar a tag do leito
 
 RAIO_PERMITIDO_M = 200       # distância máxima até a estação
 PRECISAO_MAXIMA_M = 150       # recusa localização muito imprecisa
-EXIGIR_LOCALIZACAO = True     # False para testar fora do local
+EXIGIR_LOCALIZACAO = False    # False para testar fora do local
 
 
 def fazer_login(request):
@@ -128,17 +128,16 @@ def _sensor_bloqueia(pk, tranca):
 
 
 def _estado_servidor(estacoes):
-    bloqueada = consultar_estacao()
+    # consulta estacao/ e todas as trancas em paralelo (uma rodada só)
+    ids = [e.pk for e in estacoes if e.pk in ESTACOES_COM_SENSOR]
+    bloqueada, trancas_sensor = consultar_tudo(ids)
     if bloqueada is None:  # servidor indisponível
         return {
             'bloqueada': None,
             'trancas': {},
             'sensor_bloqueia': {e.pk: _sensor_bloqueia(e.pk, None) for e in estacoes},
         }
-    trancas = {
-        e.pk: consultar_tranca(e.pk) if e.pk in ESTACOES_COM_SENSOR else None
-        for e in estacoes
-    }
+    trancas = {e.pk: trancas_sensor.get(e.pk) for e in estacoes}
     return {
         'bloqueada': bloqueada,
         'trancas': trancas,

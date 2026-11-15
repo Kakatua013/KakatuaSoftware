@@ -918,7 +918,7 @@
         })();
 
         // ---------- Atualização automática do estado ----------
-        // Atualiza aviso, trancas e botões a cada 5s, sem recarregar a página.
+        // Atualiza aviso, trancas e botões a cada 1,5s, sem recarregar a página.
         // Usa setTimeout recursivo: a próxima consulta só é agendada quando a anterior termina.
         async function atualizar() {
             try {
@@ -957,9 +957,9 @@
             } catch (e) {
                 console.error('Erro ao atualizar estado:', e);
             }
-            setTimeout(atualizar, 5000);
+            setTimeout(atualizar, 1500);
         }
-        setTimeout(atualizar, 5000);
+        setTimeout(atualizar, 1500);
     </script>
 
     {% if exigir_localizacao %}
