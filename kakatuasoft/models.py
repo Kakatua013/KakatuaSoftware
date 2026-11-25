@@ -58,7 +58,7 @@ class Usuario(models.Model):
 #      >>> usuario.save()
 
 # Depois deste tempo com um objeto encaixado SEM reserva, a estação ganha alerta no /admin
-TEMPO_ALERTA_OBJETO_S = 10 * 1
+TEMPO_ALERTA_OBJETO_S = 5 * 60
 
 
 class Estacao(models.Model):
