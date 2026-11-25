@@ -34,5 +34,6 @@ urlpatterns = [
     path('tag/cadastrar/', views.cadastrar_tag, name='cadastrar_tag'),
     path('tag/status/', views.tag_status, name='tag_status'),
     path('api/tag/', views.tag_lida, name='tag_lida'),
+    path('tag/cancelar/', views.cancelar_tag, name='cancelar_tag'),
     path('', views.fazer_login),
 ]

@@ -420,6 +420,16 @@ def tag_status(request):
     return JsonResponse(_estado_tag(request.usuario))
 
 
+@login_necessario
+@require_POST
+def cancelar_tag(request):
+    """Encerra o cadastro de tag em andamento (o usuário saiu da tela de cadastro)."""
+    if request.usuario.cadastrando_tag_ate:
+        request.usuario.cadastrando_tag_ate = None
+        request.usuario.save(update_fields=['cadastrando_tag_ate'])
+    return JsonResponse(_estado_tag(request.usuario))
+
+
 def _processar_tag(uid, id_tranca):
     """Decide o que fazer com uma tag lida no leitor. Retorna (resultado, mensagem)."""
     agora = timezone.now()

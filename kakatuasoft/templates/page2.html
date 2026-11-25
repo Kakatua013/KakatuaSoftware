@@ -1037,6 +1037,7 @@
                     }
                 } catch (e) {}
             }, 2000);
+            window.pararAcompanhamentoTag = function () { clearInterval(timer); };
         })();
     </script>
     <script>
@@ -1054,10 +1055,39 @@
                 window.scrollTo(0, 0);
             }
 
+            // Sair da tela de cadastro (botão Voltar, ou o ícone de novo) encerra o cadastro em andamento,
+            // senão a contagem continuaria no servidor e a página reabriria no modo tag ao recarregar.
+            function cancelarCadastro() {
+                // há cadastro em andamento? (o texto vindo do servidor começa com espaços e quebras
+                // de linha, por isso o trim(); o data-aguardando também vem do servidor)
+                var emAndamento = st && (Number(st.dataset.aguardando) > 0 ||
+                                         st.textContent.trim().indexOf('Aproxime') === 0);
+                if (!emAndamento) return;
+                if (window.pararAcompanhamentoTag) window.pararAcompanhamentoTag();
+
+                var btnCadastro = document.getElementById('btn-tag');
+                var temTag = btnCadastro && btnCadastro.textContent.trim() === 'Trocar tag';
+                st.dataset.aguardando = '0';
+                st.textContent = temTag
+                    ? 'Tag cadastrada: guarde ou libere aproximando-a do leitor'
+                    : 'Cadastre uma tag para guardar e liberar pelo leitor';
+
+                var campo = document.querySelector('.form-tag [name=csrfmiddlewaretoken]');
+                try {
+                    fetch("{% url 'cancelar_tag' %}", {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        keepalive: true,
+                        headers: { 'X-CSRFToken': campo ? campo.value : '' }
+                    });
+                } catch (e) {}
+            }
+            function sair() { cancelarCadastro(); fechar(); }
+
             btnTag.addEventListener('click', function () {
-                corpo.classList.contains('modo-tag') ? fechar() : abrir();
+                corpo.classList.contains('modo-tag') ? sair() : abrir();
             });
-            btnVoltar.addEventListener('click', fechar);
+            btnVoltar.addEventListener('click', sair);
 
             // ao enviar o cadastro a página recarrega: lembra de reabrir no modo tag
             var form = document.querySelector('.form-tag');
