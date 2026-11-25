@@ -38,6 +38,11 @@ VALIDADE_LINK = 60 * 60 * 24   # 24 horas
 
 TIMEOUT_REOCUPAR = 10
 
+# Depois de "Guardar bike" a tranca é liberada e a reserva fica PENDENTE: só é confirmada
+# quando o sensor e o fim de curso detectarem a bike. Passado esse prazo, a tranca reabre
+# e a estação volta a ficar livre.
+TIMEOUT_AGUARDANDO_BIKE = 60   # segundos
+
 JANELA_CADASTRO_TAG = 60     # segundos para o usuário aproximar a tag do leitor
 
 RAIO_PERMITIDO_M = 200       # distância máxima até a estação
@@ -89,9 +94,28 @@ def login_necessario(view):
 def estado_json(request):
     estacoes = list(Estacao.objects.all().order_by('id'))
     dados = _estado_servidor(estacoes)
+    # confirma/cancela reservas pendentes
+    _atualizar_reservas(estacoes, dados['trancas'])
     dados['situacoes'] = {e.pk: _situacao(
         e, request.usuario) for e in estacoes}
+    dados['aguardando'] = {e.pk: e.aguardando for e in estacoes}
+    dados['rotulos'] = {e.pk: _rotulo(e, request.usuario, dados['trancas'].get(e.pk),
+                                      dados['sensor_bloqueia'][e.pk]) for e in estacoes}
     return JsonResponse(dados)
+
+
+def _rotulo(estacao, usuario, tranca, sensor_bloqueia):
+    """Texto do aviso no cartão da estação.
+    - Quem está reservando (aguardando a bike) vê a situação da TRANCA: aberta/fechada.
+    - Todos os outros momentos/usuários veem só se a ESTAÇÃO está ocupada ou disponível."""
+    if estacao.aguardando and estacao.ocupada_por_id == usuario.pk:
+        estado = str(tranca.get('estado')).strip().lower() if tranca else ''
+        return {'rotulo': 'Tranca', 'texto': estado or 'sem dados', 'estado': estado}
+    # ocupada = reservada no sistema OU algo travado na estação (sensor + fim de curso)
+    ocupada = (not estacao.livre) or (tranca is not None and sensor_bloqueia)
+    return {'rotulo': 'Estação',
+            'texto': 'Ocupada' if ocupada else 'Disponível',
+            'estado': 'ocupada' if ocupada else 'disponivel'}
 
 
 def _situacao(estacao, usuario):
@@ -104,14 +128,18 @@ def _situacao(estacao, usuario):
 def page2(request):
     estacoes = list(Estacao.objects.all().order_by('id'))
     estado = _estado_servidor(estacoes)
+    # confirma/cancela reservas pendentes
+    _atualizar_reservas(estacoes, estado['trancas'])
     for e in estacoes:
         e.tranca = estado['trancas'].get(e.pk)
         e.sensor_bloqueia = estado['sensor_bloqueia'][e.pk]
+        e.rotulo = _rotulo(e, request.usuario, e.tranca, e.sensor_bloqueia)
     return render(request, 'page2.html', {
         'usuario': request.usuario,
         'estacoes': estacoes,
         'bloqueada': estado['bloqueada'],
         'exigir_localizacao': EXIGIR_LOCALIZACAO,
+        'segundos_aguardando': TIMEOUT_AGUARDANDO_BIKE,
         'tem_tag': bool(request.usuario.tag_uid),
         'tag_aguardando': _segundos_cadastro_tag(request.usuario),
     })
@@ -125,6 +153,51 @@ def _sensor_bloqueia(pk, tranca):
     if tranca is None:
         return True
     return str(tranca.get('estado')).strip().lower() in ESTADOS_DETECTANDO
+
+
+def _bike_travada(tranca):
+    """True só com confirmação do ESP. O firmware manda 'fechada' apenas quando o sensor
+    detecta a bike E o fim de curso está acionado; qualquer falha na leitura = False."""
+    if tranca is None:
+        return False
+    return str(tranca.get('estado')).strip().lower() in ESTADOS_DETECTANDO
+
+
+def _atualizar_reservas(estacoes=None, trancas=None):
+    """Resolve as reservas que aguardam a bike (confirmada=False):
+      - sensor + fim de curso acionados -> reserva CONFIRMADA;
+      - prazo esgotado -> a tranca é reaberta e a estação volta a ficar livre.
+    Se já tiver as estações/leituras das trancas, passe-as (evita consultas repetidas).
+    As instâncias recebidas são atualizadas no lugar."""
+    if estacoes is None:
+        estacoes = list(Estacao.objects.filter(
+            ocupada_por__isnull=False, confirmada=False))
+    for e in estacoes:
+        if not e.aguardando:
+            continue
+        tranca = trancas.get(
+            e.pk) if trancas is not None else consultar_tranca(e.pk)
+        bike_ok = _bike_travada(tranca)
+        expirou = e.aguardando_ate is None or timezone.now() >= e.aguardando_ate
+        if not (bike_ok or expirou):
+            continue
+        with transaction.atomic():
+            est = Estacao.objects.select_for_update().get(pk=e.pk)
+            if est.aguardando:   # senão, outra requisição já resolveu
+                if bike_ok:
+                    est.confirmada = True
+                    est.aguardando_ate = None
+                    est.ocupada_em = timezone.now()
+                    est.save()
+                # volta a tranca ao estado aberto
+                elif enviar_comando(est.pk, 'abrir'):
+                    est.ocupada_por = None
+                    est.ocupada_em = None
+                    est.aguardando_ate = None
+                    est.confirmada = True
+                    est.save()
+                # se o comando falhar, mantém pendente e tenta de novo na próxima consulta
+        e.refresh_from_db()
 
 
 def _estado_servidor(estacoes):
@@ -174,6 +247,7 @@ def _perto_da_estacao(request, estacao):
 def _ocupar(usuario, pk):
     """Regras de 'guardar a bike' (a checagem de localização é feita antes, nas telas
     que têm GPS). Usada pelo site e pelo leitor de tag. Retorna (ok, mensagem)."""
+    _atualizar_reservas()   # primeiro encerra reservas pendentes vencidas
     restante = _segundos_restantes(usuario)
     if restante > 0:
         return False, f'Aguarde {restante} s para guardar a bike novamente.'
@@ -193,13 +267,24 @@ def _ocupar(usuario, pk):
             return False, 'Esta estação já está ocupada.'
         if usuario.estacoes_ocupadas.exists():
             return False, 'Você já está com uma estação ocupada.'
-        # manda a tranca fechar (só estações com sensor/solenoide)
-        if pk in ESTACOES_COM_SENSOR and not enviar_comando(pk, 'fechar'):
-            return False, 'Não foi possível acionar a tranca. Tente novamente.'
+        if pk in ESTACOES_COM_SENSOR:
+            # libera a solenoide: a reserva fica PENDENTE até o sensor + fim de curso confirmarem
+            if not enviar_comando(pk, 'fechar'):
+                return False, 'Não foi possível acionar a tranca. Tente novamente.'
+            estacao.confirmada = False
+            estacao.ocupada_em = None
+            estacao.aguardando_ate = timezone.now() + timedelta(seconds=TIMEOUT_AGUARDANDO_BIKE)
+            mensagem = (f'Tranca liberada! Encaixe a bike em até {TIMEOUT_AGUARDANDO_BIKE} s '
+                        'para confirmar a reserva.')
+        else:
+            # estação sem hardware: não há o que confirmar
+            estacao.confirmada = True
+            estacao.ocupada_em = timezone.now()
+            estacao.aguardando_ate = None
+            mensagem = 'Estação ocupada com sucesso.'
         estacao.ocupada_por = usuario
-        estacao.ocupada_em = timezone.now()
         estacao.save()
-    return True, 'Estação ocupada com sucesso.'
+    return True, mensagem
 
 
 def _liberar(usuario, pk):
@@ -212,15 +297,18 @@ def _liberar(usuario, pk):
         # regra principal: só quem ocupou pode liberar
         if estacao.ocupada_por_id != dono.pk:
             return False, 'Só quem ocupou a estação pode liberá-la.'
+        era_pendente = not estacao.confirmada
         # manda a tranca abrir antes de liberar no banco
         if pk in ESTACOES_COM_SENSOR and not enviar_comando(pk, 'abrir'):
             return False, 'Não foi possível acionar a tranca. Tente novamente.'
         estacao.ocupada_por = None
         estacao.ocupada_em = None
+        estacao.aguardando_ate = None
+        estacao.confirmada = True
         estacao.save()
         dono.ultima_liberacao = timezone.now()
         dono.save(update_fields=['ultima_liberacao'])
-    return True, 'Estação liberada.'
+    return True, 'Reserva cancelada.' if era_pendente else 'Estação liberada.'
 
 
 @login_necessario
@@ -448,6 +536,7 @@ def _processar_tag(uid, id_tranca):
         return 'cadastrada', f'Tag cadastrada para {pendente.Login}.'
 
     # 2) uso normal: guarda ou libera a estação do dono da tag
+    _atualizar_reservas()   # encerra reservas pendentes vencidas antes de decidir
     usuario = Usuario.objects.filter(tag_uid=uid).first()
     if usuario is None:
         return 'desconhecida', 'Tag nao cadastrada.'

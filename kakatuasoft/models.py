@@ -68,6 +68,15 @@ class Estacao(models.Model):
         related_name="estacoes_ocupadas",
     )
     ocupada_em = models.DateTimeField(null=True, blank=True)
+    # False = o usuário pediu para guardar (solenoide liberada) e a estação aguarda a bike.
+    # Só vira True quando o sensor E o fim de curso confirmarem. True = reserva efetiva.
+    confirmada = models.BooleanField(default=True)
+    # prazo para a bike ser encaixada (usado enquanto confirmada=False)
+    aguardando_ate = models.DateTimeField(null=True, blank=True)
+
+    @property
+    def aguardando(self):
+        return self.ocupada_por_id is not None and not self.confirmada
 
     @property
     def livre(self):

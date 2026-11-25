@@ -313,7 +313,8 @@
             font-weight: 800;
         }
 
-        .tranca[data-estado="fechada"] { color: var(--ambar); }
+        .tranca[data-estado="fechada"],
+        .tranca[data-estado="ocupada"] { color: var(--ambar); }
 
         .card-corpo h3 {
             font-family: var(--fonte-titulo);
@@ -522,7 +523,8 @@
         html[data-tema="escuro"] .vazio { background: #17231c; }
         html[data-tema="escuro"] .seta { background: #22362a; color: #6fe3a8; box-shadow: 0 10px 22px -10px rgba(0, 0, 0, 0.8); }
         html[data-tema="escuro"] .tranca { color: #6fe3a8; }
-        html[data-tema="escuro"] .tranca[data-estado="fechada"] { color: var(--ambar); }
+        html[data-tema="escuro"] .tranca[data-estado="fechada"],
+        html[data-tema="escuro"] .tranca[data-estado="ocupada"] { color: var(--ambar); }
         html[data-tema="escuro"] .btn-acao:disabled { background: #33433a; box-shadow: 0 5px 0 #28352e; }
         html[data-tema="escuro"] .ponto { background: #33463b; }
         html[data-tema="escuro"] .ponto[aria-current="true"] { background: var(--g-600); }
@@ -734,7 +736,7 @@
                     {% if estacao.livre %}
                         <section class="card-estacao" data-pk="{{ estacao.pk }}" data-situacao="livre">
                     {% elif estacao.ocupada_por == usuario %}
-                        <section class="card-estacao" data-pk="{{ estacao.pk }}" data-situacao="sua">
+                        <section class="card-estacao" data-pk="{{ estacao.pk }}" data-situacao="sua"{% if estacao.aguardando %} data-aguardando="1"{% endif %}>
                     {% else %}
                         <section class="card-estacao" data-pk="{{ estacao.pk }}" data-situacao="ocupada">
                     {% endif %}
@@ -743,7 +745,7 @@
                             {% if estacao.livre %}
                                 <span class="selo">Livre</span>
                             {% elif estacao.ocupada_por == usuario %}
-                                <span class="selo">Sua bike</span>
+                                <span class="selo">{% if estacao.aguardando %}Aguardando a bike{% else %}Sua bike{% endif %}</span>
                             {% else %}
                                 <span class="selo">Em uso</span>
                             {% endif %}
@@ -755,10 +757,8 @@
                             <!-- Estado da tranca desta estação (atualizado pelo script) -->
                             <p class="tranca-info">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-                                Tranca
-                                <span class="tranca" data-id="{{ estacao.pk }}"{% if estacao.tranca %} data-estado="{{ estacao.tranca.estado }}"{% endif %}>
-                                    {% if estacao.tranca %}{{ estacao.tranca.estado }}{% if estacao.tranca.reservada %} (reservada){% endif %}{% else %}sem dados{% endif %}
-                                </span>
+                                <span class="rotulo-info" data-id="{{ estacao.pk }}">{{ estacao.rotulo.rotulo }}</span>
+                                <span class="tranca" data-id="{{ estacao.pk }}" data-estado="{{ estacao.rotulo.estado }}">{{ estacao.rotulo.texto }}</span>
                             </p>
 
                             {% if estacao.livre %}
@@ -778,6 +778,14 @@
                                 </form>
 
                             {% elif estacao.ocupada_por == usuario %}
+                                {% if estacao.aguardando %}
+                                <h3>Tranca liberada</h3>
+                                <p>Encaixe a bike na estação em até {{ segundos_aguardando }} s. A reserva só é confirmada quando o sensor e o fim de curso detectarem a bike.</p>
+                                <form method="post" action="{% url 'liberar_estacao' estacao.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-liberar">Cancelar reserva</button>
+                                </form>
+                                {% else %}
                                 <h3>Sua bike está guardada aqui</h3>
                                 <p>Guardada desde {{ estacao.ocupada_em|date:"d/m/Y H:i" }}</p>
                                 <p class="detalhe-foco">Ao liberar, a estação volta a ficar disponível para outros alunos.</p>
@@ -785,6 +793,7 @@
                                     {% csrf_token %}
                                     <button type="submit" class="btn-liberar">Liberar estação</button>
                                 </form>
+                                {% endif %}
 
                             {% else %}
                                 <h3>Estação em uso</h3>
@@ -928,15 +937,15 @@
 
                     document.getElementById('banner-bloqueio').hidden = d.bloqueada !== null;
 
+                    // aviso do cartão: "Tranca aberta/fechada" só para quem está reservando;
+                    // para os demais, "Estação ocupada/disponível"
                     document.querySelectorAll('.tranca').forEach(el => {
-                        const t = d.trancas[el.dataset.id];
-                        if (t) {
-                            el.textContent = t.estado + (t.reservada ? ' (reservada)' : '');
-                            el.dataset.estado = t.estado;
-                        } else {
-                            el.textContent = 'sem dados';
-                            delete el.dataset.estado;
-                        }
+                        const r = d.rotulos && d.rotulos[el.dataset.id];
+                        if (!r) return;
+                        el.textContent = r.texto;
+                        el.dataset.estado = r.estado;
+                        const rot = document.querySelector('.rotulo-info[data-id="' + el.dataset.id + '"]');
+                        if (rot) rot.textContent = r.rotulo;
                     });
 
                     document.querySelectorAll('.btn-armazenar').forEach(btn => {
@@ -950,7 +959,8 @@
                     // ocupação mudou (ex.: guardou/liberou pelo leitor de tag): recarrega para refletir
                     if (d.situacoes) {
                         const mudou = Array.from(document.querySelectorAll('.card-estacao')).some(c =>
-                            d.situacoes[c.dataset.pk] && d.situacoes[c.dataset.pk] !== c.dataset.situacao);
+                            (d.situacoes[c.dataset.pk] && d.situacoes[c.dataset.pk] !== c.dataset.situacao) ||
+                            (d.aguardando && !!d.aguardando[c.dataset.pk] !== (c.dataset.aguardando === '1')));
                         if (mudou) { location.reload(); return; }
                     }
                 }
