@@ -47,7 +47,7 @@ JANELA_CADASTRO_TAG = 60     # segundos para o usuário aproximar a tag do leito
 
 RAIO_PERMITIDO_M = 200       # distância máxima até a estação
 PRECISAO_MAXIMA_M = 150       # recusa localização muito imprecisa
-EXIGIR_LOCALIZACAO = False    # False para testar fora do local
+EXIGIR_LOCALIZACAO = True    # False para testar fora do local
 
 
 def fazer_login(request):
