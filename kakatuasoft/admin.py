@@ -10,7 +10,8 @@ class UsuarioAdmin(admin.ModelAdmin):
 
 @admin.register(Estacao)
 class EstacaoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'ocupada_por', 'ocupada_em')
+    list_display = ('nome', 'ocupada_por', 'confirmada',
+                    'ocupada_em', 'alerta_objeto')
 
 
 class ConfiguracaoForm(forms.ModelForm):

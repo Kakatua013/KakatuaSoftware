@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 # Importa funções para criptografar e verificar senhas de forma segura
 from django.contrib.auth.hashers import make_password, check_password
@@ -56,6 +57,10 @@ class Usuario(models.Model):
 #      >>> usuario.set_senha('teste_123')
 #      >>> usuario.save()
 
+# Depois deste tempo com um objeto encaixado SEM reserva, a estação ganha alerta no /admin
+TEMPO_ALERTA_OBJETO_S = 10 * 1
+
+
 class Estacao(models.Model):
     nome = models.CharField(max_length=50)
     latitude = models.FloatField(null=True, blank=True)
@@ -73,6 +78,24 @@ class Estacao(models.Model):
     confirmada = models.BooleanField(default=True)
     # prazo para a bike ser encaixada (usado enquanto confirmada=False)
     aguardando_ate = models.DateTimeField(null=True, blank=True)
+
+    # desde quando há um objeto encaixado na estação sem reserva (None = não há)
+    objeto_desde = models.DateTimeField(null=True, blank=True)
+
+    @property
+    def objeto_alerta(self):
+        return (self.objeto_desde is not None and
+                (timezone.now() - self.objeto_desde).total_seconds() >= TEMPO_ALERTA_OBJETO_S)
+
+    def alerta_objeto(self):
+        """Texto para o /admin (coloque 'alerta_objeto' no list_display)."""
+        if self.objeto_desde is None:
+            return '—'
+        minutos = int(
+            (timezone.now() - self.objeto_desde).total_seconds() // 60)
+        texto = f'Objeto sem reserva há {minutos} min'
+        return ('⚠ ' + texto) if self.objeto_alerta else texto
+    alerta_objeto.short_description = 'Objeto sem reserva'
 
     @property
     def aguardando(self):

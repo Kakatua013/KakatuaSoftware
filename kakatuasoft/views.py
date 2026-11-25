@@ -96,26 +96,45 @@ def estado_json(request):
     dados = _estado_servidor(estacoes)
     # confirma/cancela reservas pendentes
     _atualizar_reservas(estacoes, dados['trancas'])
+    # controla objetos sem reserva
+    _atualizar_objetos(estacoes, dados['trancas'])
     dados['situacoes'] = {e.pk: _situacao(
         e, request.usuario) for e in estacoes}
     dados['aguardando'] = {e.pk: e.aguardando for e in estacoes}
-    dados['rotulos'] = {e.pk: _rotulo(e, request.usuario, dados['trancas'].get(e.pk),
-                                      dados['sensor_bloqueia'][e.pk]) for e in estacoes}
+    dados['rotulos'] = {e.pk: _rotulo(e, request.usuario, dados['trancas'].get(e.pk))
+                        for e in estacoes}
+    dados['objetos'] = {e.pk: _tem_objeto(
+        e, dados['trancas'].get(e.pk)) for e in estacoes}
+    dados['sem_leitura'] = {e.pk: _sem_leitura(e.pk, dados['trancas'].get(e.pk))
+                            for e in estacoes}
     return JsonResponse(dados)
 
 
-def _rotulo(estacao, usuario, tranca, sensor_bloqueia):
+def _tem_objeto(estacao, tranca):
+    """Objeto encaixado (sensor + fim de curso) numa estação SEM reserva."""
+    return estacao.livre and _bike_travada(tranca)
+
+
+def _sem_leitura(pk, tranca):
+    """Estação com sensor cuja tranca não deu para consultar (servidor fora do ar)."""
+    return pk in ESTACOES_COM_SENSOR and tranca is None
+
+
+def _rotulo(estacao, usuario, tranca):
     """Texto do aviso no cartão da estação.
     - Quem está reservando (aguardando a bike) vê a situação da TRANCA: aberta/fechada.
-    - Todos os outros momentos/usuários veem só se a ESTAÇÃO está ocupada ou disponível."""
+    - Os demais veem a situação da ESTAÇÃO:
+        Ocupada     = reservada por alguém;
+        Indisponível = há um objeto encaixado, mas ninguém reservou;
+        Disponível  = livre."""
     if estacao.aguardando and estacao.ocupada_por_id == usuario.pk:
         estado = str(tranca.get('estado')).strip().lower() if tranca else ''
         return {'rotulo': 'Tranca', 'texto': estado or 'sem dados', 'estado': estado}
-    # ocupada = reservada no sistema OU algo travado na estação (sensor + fim de curso)
-    ocupada = (not estacao.livre) or (tranca is not None and sensor_bloqueia)
-    return {'rotulo': 'Estação',
-            'texto': 'Ocupada' if ocupada else 'Disponível',
-            'estado': 'ocupada' if ocupada else 'disponivel'}
+    if not estacao.livre:
+        return {'rotulo': 'Estação', 'texto': 'Ocupada', 'estado': 'ocupada'}
+    if _bike_travada(tranca):
+        return {'rotulo': 'Estação', 'texto': 'Indisponível', 'estado': 'indisponivel'}
+    return {'rotulo': 'Estação', 'texto': 'Disponível', 'estado': 'disponivel'}
 
 
 def _situacao(estacao, usuario):
@@ -130,10 +149,13 @@ def page2(request):
     estado = _estado_servidor(estacoes)
     # confirma/cancela reservas pendentes
     _atualizar_reservas(estacoes, estado['trancas'])
+    # controla objetos sem reserva
+    _atualizar_objetos(estacoes, estado['trancas'])
     for e in estacoes:
         e.tranca = estado['trancas'].get(e.pk)
-        e.sensor_bloqueia = estado['sensor_bloqueia'][e.pk]
-        e.rotulo = _rotulo(e, request.usuario, e.tranca, e.sensor_bloqueia)
+        e.objeto = _tem_objeto(e, e.tranca)
+        e.sem_leitura = _sem_leitura(e.pk, e.tranca)
+        e.rotulo = _rotulo(e, request.usuario, e.tranca)
     return render(request, 'page2.html', {
         'usuario': request.usuario,
         'estacoes': estacoes,
@@ -200,6 +222,26 @@ def _atualizar_reservas(estacoes=None, trancas=None):
         e.refresh_from_db()
 
 
+def _atualizar_objetos(estacoes, trancas):
+    """Registra desde quando há um objeto encaixado numa estação SEM reserva
+    (base do alerta no /admin). Zera quando alguém reserva ou o objeto sai.
+    Se a tranca não pôde ser consultada, não altera nada."""
+    agora = timezone.now()
+    for e in estacoes:
+        if e.pk not in ESTACOES_COM_SENSOR:
+            continue
+        tranca = trancas.get(e.pk)
+        if tranca is None:
+            continue
+        tem = _tem_objeto(e, tranca)
+        if tem and e.objeto_desde is None:
+            e.objeto_desde = agora
+            e.save(update_fields=['objeto_desde'])
+        elif not tem and e.objeto_desde is not None:
+            e.objeto_desde = None
+            e.save(update_fields=['objeto_desde'])
+
+
 def _estado_servidor(estacoes):
     # consulta estacao/ e todas as trancas em paralelo (uma rodada só)
     ids = [e.pk for e in estacoes if e.pk in ESTACOES_COM_SENSOR]
@@ -251,12 +293,13 @@ def _ocupar(usuario, pk):
     restante = _segundos_restantes(usuario)
     if restante > 0:
         return False, f'Aguarde {restante} s para guardar a bike novamente.'
+    # True = já há uma bike encaixada (sensor + fim de curso) sem reserva
+    ja_encaixada = False
     if pk in ESTACOES_COM_SENSOR:
         tranca = consultar_tranca(pk)
-        if _sensor_bloqueia(pk, tranca):
-            if tranca is None:
-                return False, 'Não foi possível verificar o sensor. Tente novamente.'
-            return False, 'O sensor está detectando algo. Aguarde para armazenar.'
+        if tranca is None:
+            return False, 'Não foi possível verificar o sensor. Tente novamente.'
+        ja_encaixada = _bike_travada(tranca)
 
     with transaction.atomic():
         # trava a linha no banco: evita dois usuários pegarem a mesma estação ao mesmo tempo
@@ -271,11 +314,18 @@ def _ocupar(usuario, pk):
             # libera a solenoide: a reserva fica PENDENTE até o sensor + fim de curso confirmarem
             if not enviar_comando(pk, 'fechar'):
                 return False, 'Não foi possível acionar a tranca. Tente novamente.'
-            estacao.confirmada = False
-            estacao.ocupada_em = None
-            estacao.aguardando_ate = timezone.now() + timedelta(seconds=TIMEOUT_AGUARDANDO_BIKE)
-            mensagem = (f'Tranca liberada! Encaixe a bike em até {TIMEOUT_AGUARDANDO_BIKE} s '
-                        'para confirmar a reserva.')
+            if ja_encaixada:
+                # a bike já está lá: a tranca fecha nela e a reserva é confirmada na hora
+                estacao.confirmada = True
+                estacao.ocupada_em = timezone.now()
+                estacao.aguardando_ate = None
+                mensagem = 'Bike já encaixada: tranca fechada e reserva confirmada.'
+            else:
+                estacao.confirmada = False
+                estacao.ocupada_em = None
+                estacao.aguardando_ate = timezone.now() + timedelta(seconds=TIMEOUT_AGUARDANDO_BIKE)
+                mensagem = (f'Tranca liberada! Encaixe a bike em até {TIMEOUT_AGUARDANDO_BIKE} s '
+                            'para confirmar a reserva.')
         else:
             # estação sem hardware: não há o que confirmar
             estacao.confirmada = True
@@ -283,6 +333,7 @@ def _ocupar(usuario, pk):
             estacao.aguardando_ate = None
             mensagem = 'Estação ocupada com sucesso.'
         estacao.ocupada_por = usuario
+        estacao.objeto_desde = None   # agora tem dono
         estacao.save()
     return True, mensagem
 
@@ -551,6 +602,11 @@ def _processar_tag(uid, id_tranca):
 
     # sem estação ocupada: a tag guarda a bike. Leitor único (id 0): tenta as estações com sensor em ordem.
     candidatas = [id_tranca] if id_tranca else sorted(ESTACOES_COM_SENSOR)
+    if not id_tranca:
+        # prefere estações sem objeto; só "assume" uma que já tenha objeto se não houver outra
+        _, trancas = consultar_tudo(candidatas)
+        candidatas = sorted(
+            candidatas, key=lambda pk: _bike_travada(trancas.get(pk)))
     texto = 'Nenhuma estacao disponivel.'
     for pk in candidatas:
         ok, texto = _ocupar(usuario, pk)
